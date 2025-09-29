@@ -1,0 +1,46 @@
+# Sprint N — Fechas: yyyy-mm-dd a yyyy-mm-dd
+
+## 1) Objetivo del sprint
+...
+
+## 2) Alcance comprometido (historias/activities)
+- [ID-1] Título — tipo — etiquetas
+
+## 3) Alineación con Design Thinking (Dual-Track)
+...
+
+## 4) Hipótesis y métricas objetivo
+...
+
+## 5) Criterios de aceptación del sprint
+...
+
+## 6) Preparación (Definition of Ready)
+...
+
+## 7) Finalización (Definition of Done)
+...
+
+## 8) Riesgos y bloqueos
+...
+
+## 9) Plan de ceremonias
+...
+
+## 10) Plan de pruebas
+...
+
+## 11) Telemetría y observabilidad
+...
+
+## 12) Entregables del sprint
+...
+
+## 13) Resultados y métricas (completar en Review)
+...
+
+## 14) Retro del sprint (acciones concretas)
+...
+
+## 15) Trazabilidad del sprint
+...
