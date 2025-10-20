@@ -1,43 +1,37 @@
-﻿# Dependencias
+﻿# --- Node / Vite (raíz) ---
 node_modules/
-pnpm-lock.yaml
-yarn.lock
-package-lock.json
-
-# Builds y artefactos
 dist/
-build/
-coverage/
-.tmp/
-.temp/
-.cache/
 .vite/
-.next/
-out/
-
-# Logs y diagnósticos
-logs/
 *.log
 npm-debug.log*
-yarn-debug.log*
 pnpm-debug.log*
-lerna-debug.log*
-report.[0-9]*.[0-9]*.[0-9]*.json
+yarn-debug.log*
+yarn-error.log*
 
-# Entornos y claves
+# --- Entornos / secretos ---
 .env
 .env.*
 !.env.example
 
-# Sistema operativo / editores
+# --- Salidas de build del cliente ---
+client/dist/
+client/.vite/
+client/node_modules/
+
+# --- SO / Editor ---
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
 .vscode/
 .idea/
-*.swp
+*.code-workspace
 
-# Otros
-*.local
-.sass-cache/
-.eslintcache
-stylelintcache
+# --- Cobertura / reportes ---
+coverage/
+*.lcov
+
+# --- Temporales ---
+tmp/
+temp/
+.cache/

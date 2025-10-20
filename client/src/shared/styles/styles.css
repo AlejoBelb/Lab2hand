@@ -1,0 +1,610 @@
+/* ========================================================================
+   Variables y base
+   ======================================================================== */
+:root {
+  --bg: #0b0f19;
+  --card: #121826;
+  --muted: #9aa4b2;
+  --text: #e5e7eb;
+  --primary: #6ee7b7;
+  --accent: #60a5fa;
+  --danger: #f87171;
+  --border: #1f2937;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  background: linear-gradient(180deg, var(--bg), #0e1422);
+  color: var(--text);
+}
+
+/* ========================================================================
+   Layout general y navegación superior
+   ======================================================================== */
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: #0f1524;
+  border-bottom: 1px solid var(--border);
+}
+
+.topnav .brand a {
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.topnav .menu {
+  display: flex;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.topnav .menu a {
+  text-decoration: none;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.4rem;
+  color: #d5dbea;
+}
+
+.topnav .menu a.active {
+  background: #141b2c;
+  color: #ffffff;
+}
+
+.content {
+  padding: 1rem;
+}
+
+.page-header {
+  max-width: 1400px;
+  margin: 0 auto 1rem auto;
+}
+
+/* ========================================================================
+   Contenedores y grids
+   ======================================================================== */
+.container {
+  max-width: 1400px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.container-wide {
+  max-width: 1600px;
+  padding: 0 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+/* 40/60 en desktop ancho */
+@media (min-width: 1100px) {
+  .grid-2-40-60 {
+    grid-template-columns: 0.4fr 0.6fr;
+    align-items: start;
+  }
+}
+
+/* Grid 30/70 para priorizar la simulación */
+.grid-2-30-70 {
+  display: grid;
+  grid-template-columns: 30% 70%;
+  gap: 16px;
+}
+@media (max-width: 1100px) {
+  .grid-2-30-70 { grid-template-columns: 1fr; }
+}
+
+/* Grid dos columnas balanceadas con fallback responsive */
+.views-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 1024px) {
+  .views-row-2col { grid-template-columns: 1fr; }
+}
+
+/* Fila de vistas lado a lado con flex-wrap */
+.views-row {
+  display: flex;
+  gap: 28px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+/* ========================================================================
+   Tarjetas
+   ======================================================================== */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+.card h2 { margin: 0 0 10px 0; font-size: 1.35rem; }
+
+hr.sep {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 16px 0;
+}
+
+/* ========================================================================
+   Inputs y botones
+   ======================================================================== */
+input, select, button, textarea {
+  background: #0f1625;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--accent);
+  border-color: transparent;
+}
+
+button {
+  cursor: pointer;
+  transition: transform .05s ease-in-out, opacity .2s;
+}
+button:active { transform: translateY(1px); }
+
+button.primary { background: var(--accent); color: #0b1220; border-color: transparent; }
+button.ghost { background: transparent; }
+button.danger { background: var(--danger); border-color: transparent; }
+
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ========================================================================
+   Tablas generales
+   ======================================================================== */
+table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+th { text-align: left; color: var(--muted); font-weight: 600; }
+td input { width: 100%; }
+
+/* ========================================================================
+   Utilitarios de texto
+   ======================================================================== */
+.badge { display: inline-block; font-size: 12px; color: #0b1220; background: var(--primary); border-radius: 999px; padding: 2px 10px; margin-left: 8px; }
+.small { font-size: 12px; color: var(--muted); }
+.subtitle { color: var(--muted); margin-top: -6px; }
+.app-title { display: flex; align-items: baseline; gap: 8px; }
+.footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 16px; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+/* ========================================================================
+   Vistas y contenedores de SVG
+   ======================================================================== */
+.view-box { overflow: visible; }
+.post-empty {
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  text-align: center;
+  margin: 8px 0 0 0;
+}
+.post-msg { color: var(--muted); }
+
+/* ========================================================================
+   Animaciones sutiles
+   ======================================================================== */
+.fade-out { animation: tankFade 500ms ease-in forwards; }
+@keyframes tankFade {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.98); }
+}
+
+/* ========================================================================
+   Tabla de capturas con scroll y encabezado fijo
+   ======================================================================== */
+.table-wrap {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+.table-scroll { max-height: 320px; overflow: auto; }
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+.table-row:last-child { border-bottom: none; }
+
+.table-head { font-weight: 600; background: rgba(255,255,255,0.04); }
+.table-head.sticky { position: sticky; top: 0; z-index: 1; backdrop-filter: blur(2px); }
+
+.table-cell {
+  padding: 10px 12px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Responsive de filas tipo grid */
+@media (max-width: 680px) {
+  .table-row { grid-template-columns: 1fr; }
+  .table-head { display: none; }
+  .table-cell::before {
+    content: attr(data-label);
+    color: #94a3b8;
+    margin-right: 8px;
+  }
+}
+
+/* ========================================================================
+   Secciones colapsables
+   ======================================================================== */
+.grid-1 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 10px 0;
+}
+
+.card.collapsed .card-body { display: none; }
+
+.btn-small {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  color: #cbd5e1;
+  cursor: pointer;
+}
+.btn-small:hover { background: rgba(255,255,255,0.07); }
+
+/* Grid colapsable con efecto hacia la izquierda */
+.grid-collapsible {
+  --leftCol: 30%;
+  display: grid;
+  grid-template-columns: var(--leftCol) 1fr;
+  gap: 16px;
+  transition: grid-template-columns .28s ease;
+}
+.grid-collapsible.container-collapsed { --leftCol: 0px; }
+
+.left-card {
+  overflow: hidden;
+  transition:
+    transform .28s ease,
+    opacity .22s ease,
+    padding .0s linear .28s,
+    border-width .0s linear .28s;
+}
+.container-collapsed .left-card {
+  transform: translateX(-12px);
+  opacity: 0;
+  padding: 0;
+  border-width: 0;
+  pointer-events: none;
+}
+
+.right-card { grid-column: 2 / span 1; }
+.container-collapsed .right-card { grid-column: 1 / span 2; }
+.right-card > .card-body { width: 100%; }
+
+/* ========================================================================
+   Sidebar colapsable tipo riel
+   ======================================================================== */
+.layout-shell {
+  --sidebarW: 340px;
+  --railW: 22px;
+  display: grid;
+  grid-template-columns: var(--sidebarW) 1fr;
+  gap: 16px;
+  transition: grid-template-columns .28s ease;
+}
+.layout-shell.is-collapsed { --sidebarW: var(--railW); }
+
+.sidebar-card {
+  position: relative;
+  overflow: hidden;
+  padding-right: 8px;
+}
+
+.sidebar-content {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity .2s ease, transform .28s ease;
+}
+.layout-shell.is-collapsed .sidebar-content {
+  opacity: 0;
+  transform: translateX(-12px);
+  pointer-events: none;
+}
+
+.sidebar-handle {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: var(--railW);
+  height: 44px;
+  border-radius: 10px 0 0 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  border-right: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+.sidebar-handle:hover { background: rgba(255,255,255,0.10); }
+
+.sidebar-handle svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.9;
+  transition: transform .2s ease;
+  fill: currentColor;
+  color: #cbd5e1;
+}
+.layout-shell:not(.is-collapsed) .sidebar-handle svg { transform: rotate(180deg); }
+
+/* ========================================================================
+   Panel derecho: tanque y tabla lado a lado
+   ======================================================================== */
+.right-split {
+  display: grid;
+  grid-template-columns: minmax(640px, 1fr) 420px;
+  gap: 16px;
+  align-items: start;
+}
+
+/* Columna de tabla bloqueada en ancho */
+.right-split > :last-child {
+  width: 420px;
+  max-width: 420px;
+  min-width: 420px;
+  justify-self: stretch;
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+
+/* Tablas internas más cómodas */
+.right-split > :last-child table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+.right-split > :last-child thead th {
+  padding: 10px 12px;
+  font-weight: 600;
+}
+.right-split > :last-child tbody td {
+  padding: 10px 12px;
+}
+
+/* Acciones en encabezado de tabla */
+.right-split > :last-child .table-actions,
+.right-split > :last-child .export-actions { gap: 8px; }
+
+/* Responsividad del split */
+@media (max-width: 1280px) {
+  .right-split { grid-template-columns: minmax(560px, 1fr) 380px; }
+  .right-split > :last-child {
+    width: 380px; max-width: 380px; min-width: 380px; font-size: 0.9rem;
+  }
+}
+@media (max-width: 900px) {
+  .right-split { grid-template-columns: 1fr; }
+  .right-split > :last-child { width: 100%; max-width: none; min-width: 0; }
+}
+
+/* Ajustes de tabla de capturas */
+.captures-table .left { text-align: left; }
+.captures-table .row-actions { display: flex; gap: 8px; }
+
+.table-edit-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #e6eef7;
+  outline: none;
+}
+.captures-table tr.editing { background: rgba(255,255,255,0.03); }
+.table-footnote { margin-top: 10px; font-size: 0.9rem; color: #aeb7c2; }
+
+/* Tabla con scroll y head sticky */
+.table-wrapper {
+  max-height: 360px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+}
+.captures-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.92rem;
+}
+.captures-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: rgba(16, 22, 30, 0.9);
+  backdrop-filter: saturate(1.2) blur(2px);
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.captures-table tbody td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Título corto para contenedores de tanque */
+.tank-title {
+  font-size: 0.95rem;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+
+/* ========================================================================
+   Controles de simulación
+   ======================================================================== */
+.controls-sim { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.controls-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.label-inline { font-size: 0.95rem; color: #c9d3df; }
+.input-inline {
+  padding: 6px 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  color: #e6eef7;
+  outline: none;
+}
+
+/* ========================================================================
+   Área de gráficas
+   ======================================================================== */
+.chart-area {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  min-height: 320px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+@media (min-height: 900px) {
+  .chart-area { height: 380px; min-height: 380px; }
+}
+
+/* ===== Botones deshabilitados (bloqueados) ===== */
+button:disabled,
+button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(12%);
+  box-shadow: none;
+  transform: none;
+}
+
+/* Evitar efectos hover/active cuando está deshabilitado */
+button:disabled:hover,
+button[disabled]:hover,
+button:disabled:active,
+button[disabled]:active {
+  opacity: 0.5;
+  transform: none;
+}
+
+/* Clase auxiliar por si se quiere reforzar visualmente además del atributo disabled */
+.btn-disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  filter: grayscale(12%) !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+  transform: none !important;
+}
+
+/* ===== Overlay de FINALIZADO estilo videojuego ===== */
+.finish-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: radial-gradient(1200px 800px at 50% 50%, rgba(255,255,255,0.05), rgba(0,0,0,0.6) 60%, rgba(0,0,0,0.8) 100%);
+  animation: overlayFade .35s ease-out both;
+}
+
+.finish-box {
+  text-align: center;
+  transform: translateZ(0);
+  animation: popIn .45s cubic-bezier(.2,1.2,.2,1) both;
+  pointer-events: none;
+}
+
+.finish-text {
+  font-size: clamp(36px, 6vw, 88px);
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow:
+    0 2px 0 rgba(0,0,0,0.35),
+    0 6px 14px rgba(0,0,0,0.45),
+    0 0 28px rgba(96,165,250,0.35);
+  background: linear-gradient(90deg, #f59e0b 0%, #f97316 25%, #f43f5e 50%, #60a5fa 75%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.finish-text::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.85) 15%, transparent 30%);
+  transform: translateX(-120%);
+  animation: shine 1.4s ease-out .25s forwards;
+}
+
+.finish-subtitle {
+  margin-top: 8px;
+  font-size: clamp(14px, 2.2vw, 22px);
+  font-weight: 600;
+  color: #d1d5db;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.35);
+  letter-spacing: 1px;
+}
+
+@keyframes popIn {
+  0%   { transform: scale(.85); opacity: 0; }
+  60%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes shine {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+@keyframes overlayFade {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}

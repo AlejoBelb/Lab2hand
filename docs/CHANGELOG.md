@@ -1,3 +1,9 @@
+## [Unreleased]
+- docs: decisión Frontend (Simulación cilindro — Paso 2 UI) registrada en PLAN_MAESTRO
+- roadmap: agregado item Paso 2 (UI)
+- issues: creado issue semilla “Frontend: Simulación cilindro — Paso 2 (UI)”
+
+
 # Changelog — Lab2hand
 Todas las notas de cambios de este proyecto. Formato basado en Keep a Changelog y SemVer.
 

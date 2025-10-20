@@ -1,0 +1,88 @@
+/* Contenedor del panel */
+.tankPanel {
+  width: clamp(520px, 70vw, 980px);
+  margin: 0 auto 20px auto;
+}
+
+/* Encabezado arriba del SVG (fuera del SVG para que NO escale raro) */
+.tankHeader {
+  font-size: clamp(12px, 1.4vw, 16px);
+  font-weight: 600;
+  color: #cfd7e3;
+  opacity: 0.9;
+  margin: 6px 0 10px;
+}
+
+/* SVG responsivo */
+.tankSvg {
+  width: 100%;
+  height: auto;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+/* Paredes del tanque */
+.tankBody {
+  fill: rgba(154, 173, 203, 0.03);
+  stroke: #99a8bf;
+  stroke-width: 1.4;
+}
+
+/* Agua */
+.waterFill {
+  fill: linear-gradient(180deg, #3c7bd9 0%, #1f4f9c 100%);
+  fill: rgba(60, 123, 217, 0.28);
+}
+
+/* Superficie del agua */
+.waterSurface {
+  stroke: #a5d3ff;
+  stroke-width: 0.8;
+}
+
+/* Orificio */
+.hole {
+  fill: #7cc0ff;
+  stroke: #1e2f44;
+  stroke-width: 0.5;
+}
+
+/* Chorro (guía) */
+.jet {
+  stroke: #9cc4ff;
+  stroke-width: 0.8;
+  stroke-dasharray: 3 2;
+  fill: none;
+  opacity: 0.8;
+}
+
+/* Base */
+.base {
+  stroke: #2d3a4c;
+  stroke-width: 1.2;
+}
+
+/* Regla y etiquetas */
+.rule line {
+  stroke: #b9c7da;
+  stroke-width: 0.6;
+}
+
+.ruleAxis {
+  stroke: #8ea2ba;
+  stroke-width: 0.8;
+}
+
+.ruleLabel {
+  fill: #cfd7e3;
+  font-size: 3.2px; /* en unidades del viewBox (escala bien) */
+  text-anchor: end;
+}
+
+/* Etiqueta h */
+.hLabel {
+  fill: #cfd7e3;
+  font-size: 3.6px;
+  font-weight: 600;
+}

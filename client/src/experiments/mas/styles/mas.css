@@ -1,0 +1,47 @@
+/* client/src/experiments/mas/styles/mas.css */
+
+/* Contenedor general de la página MAS */
+.masContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+/* Encabezado y subtítulo */
+.masHeader h1 {
+  font-size: 1.75rem;
+  margin: 0;
+}
+
+.masSubtitle {
+  margin: 0.25rem 0 0;
+  opacity: 0.85;
+}
+
+/* Contenido principal en columnas responsivas */
+.masContent {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 900px) {
+  .masContent {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Panel reusable para secciones */
+.masPanel {
+  background: #111316;
+  border: 1px solid #2a2f36;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+/* Lista simple para roadmap */
+.masList {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+}

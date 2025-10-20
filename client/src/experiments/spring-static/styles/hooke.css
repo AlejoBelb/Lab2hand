@@ -1,0 +1,215 @@
+/* client/src/experiments/spring-static/styles/hooke.css */
+
+/* Contenedor general */
+.springContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+/* Encabezado */
+.springHeader h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+.springSubtitle {
+  margin: 0.2rem 0 0.6rem;
+  opacity: 0.85;
+}
+
+/* Selector de modo */
+.modeSwitch {
+  display: flex;
+  gap: 8px;
+}
+.modeBtn {
+  padding: 8px 12px;
+  border: 1px solid #2a2f36;
+  background: #191c20;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.modeBtn.active {
+  outline: 2px solid #3b82f6;
+}
+
+/* Sección principal */
+.springContent {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 900px) {
+  .springContent {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Panel */
+.springPanel {
+  background: #111316;
+  border: 1px solid #2a2f36;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+/* Grid de dos columnas para formularios y canvas */
+.gridTwo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.8rem;
+}
+@media (min-width: 900px) {
+  .gridTwo {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Campos */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field span {
+  font-size: 0.95rem;
+}
+.field input {
+  background: #0e1013;
+  color: #e5e7eb;
+  border: 1px solid #2a2f36;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+/* Resultados */
+.result {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+/* Controles de animación */
+.controlsRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.actionBtn {
+  padding: 8px 12px;
+  border: 1px solid #2a2f36;
+  background: #191c20;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.actionBtn.secondary {
+  opacity: 0.9;
+}
+
+/* Área de dibujo */
+.canvasBox {
+  background: #0c0f12;
+  border: 1px solid #2a2f36;
+  border-radius: 10px;
+  padding: 8px;
+}
+
+/* SVG elementos */
+.springSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.wall {
+  fill: #1f2937;
+}
+.spring {
+  stroke: #93c5fd;
+  stroke-width: 2;
+}
+.block {
+  fill: #f59e0b;
+}
+.label {
+  fill: #e5e7eb;
+  font-size: 12px;
+}
+.guide {
+  stroke: #22d3ee;
+  stroke-dasharray: 4 4;
+  stroke-width: 1.5;
+}
+
+/* Transición visual de pantalla al entrar/salir de MAS */
+.screenFx {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(1200px 600px at 50% -10%, rgba(59,130,246,0.25), rgba(59,130,246,0)),
+              linear-gradient(0deg, rgba(15,23,42,0.55), rgba(15,23,42,0.55));
+  backdrop-filter: blur(2px);
+  animation: fxFade 520ms ease both;
+  pointer-events: none;
+  z-index: 999;
+}
+@keyframes fxFade {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Más espacio en toda la página */
+.container-wider .card { margin-bottom: 22px; }
+.card-spacious { padding: 18px; }
+
+/* Panel lateral de fuerza: más separado del sistema y sin bloquear clics fuera */
+.forceDock {
+  position: absolute;
+  right: 24px;
+  top: 24px;
+  bottom: 24px;
+  width: 300px;
+  display: flex;
+  align-items: start;
+  justify-content: flex-end;
+  z-index: 5;
+  pointer-events: none;
+}
+.forcePanel {
+  width: 100%;
+  background: #0f1318;
+  border: 1px solid #2a2f36;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.32);
+  pointer-events: auto;
+}
+.forcePanel.slim { padding: 12px; }
+.forceTitle { font-weight: 600; margin-bottom: 10px; }
+.forceBar {
+  position: relative;
+  height: 16px;
+  background: #0b0f14;
+  border: 1px solid #263140;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.forceFill { height: 100%; width: 0%; transition: width 80ms linear; }
+.forceLimitMarker {
+  position: absolute;
+  right: 0; top: 0;
+  width: 4px; height: 100%;
+  background: linear-gradient(180deg, #f87171, #ef4444);
+  opacity: 0.7;
+}
+.forceButtons { margin-top: 10px; display: flex; gap: 10px; }
+.forceHoldBtn, .forceCloseBtn {
+  padding: 8px 12px; border-radius: 10px; border: 1px solid #2a2f36; cursor: pointer;
+}
+.forceHoldBtn { background: #1a1f26; }
+.forceCloseBtn { background: #141920; }
+.forceRead {
+  margin-top: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+.forceHint { margin-top: 4px; opacity: 0.8; font-size: 0.9rem; }

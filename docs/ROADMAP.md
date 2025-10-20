@@ -32,3 +32,6 @@ Empatizar/Definir/Idear/Prototipar/Testear con criterios resumidos.
 
 ## Dependencias clave y riesgos
 Documentadas por release.
+
+## Próximo
+- [Frontend] Simulación cilindro — **Paso 2 (UI)**: llenado rápido, botones (Iniciar vaciado, Capturar, Reiniciar) y tabla de capturas (estructura sin física).

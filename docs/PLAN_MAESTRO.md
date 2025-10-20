@@ -58,3 +58,24 @@ DT–Dev desalineado, performance en dispositivos modestos, deuda de seguridad.
 
 ## 10. Calendario de sprints
 Cadencia 2 semanas; Planning, Daily, Review y Retro.
+
+## Decisión — Frontend: Simulación cilindro (UI Paso 2)
+**Fecha:** 2025-09-28  
+**Estado:** Aprobada  
+**Contexto:** Se requiere una interfaz que muestre el recipiente cilíndrico con vista lateral y superior, controles de dimensiones y preparación para llenado/vaciado y captura de mediciones.  
+**Decisión:** La implementación del **frontend** de la simulación continuará en el **canal de trabajo Frontend**. Este Plan Maestro centraliza el *qué* (alcance, prioridades y decisiones) y los vínculos a issues/PRs.  
+**Alcance inmediato (Paso 2 — UI):**
+- Animación de **llenado rápido** tras confirmar H, D y do.
+- Botones: **Iniciar vaciado**, **Capturar**, **Reiniciar**.
+- **Tabla de capturas** (estructura UI): tiempo, altura (h), distancia (x).
+- Sin física aún; sólo UI/estados para validar flujo.
+**Criterios de salida del Paso 2 (UI):**
+- Se ve el tanque (lateral) y la boca (superior) **simultáneamente**.
+- Controles de unidad (cm/m), altura (H), diámetro (D) y diámetro de orificio (do).
+- Llenado rápido visible.
+- Botones visibles y con estados habilitado/inhabilitado coherentes.
+- Tabla renderizando filas de captura (mock) al presionar **Capturar**.
+**Riesgos/Notas:**
+- Responsividad del layout 40/60.
+- Escalado visual en tamaños extremos (H y D).
+- No se implementa Torricelli en este paso (llega en Paso 3).
