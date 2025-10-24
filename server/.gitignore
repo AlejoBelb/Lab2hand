@@ -1,0 +1,32 @@
+# Dependencias
+node_modules/
+
+# Entorno y secretos
+.env
+.env.local
+.env.*.local
+
+# Prisma
+src/generated/
+src/generated/prisma/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+*.log
+
+# Builds / caches
+dist/
+build/
+.tmp/
+.cache/
+coverage/
+.DS_Store
+
+# Sistema / editor
+Thumbs.db
+.vscode/
+.idea/
