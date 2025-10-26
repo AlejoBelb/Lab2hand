@@ -67,3 +67,7 @@ Plataforma web “Eureka / Lab2hand” para explorar principios físicos mediant
 ## Licencia y contacto
 - Licencia a definir en una etapa posterior.
 - Para dudas sobre la gestión o arquitectura, revisar ADRs y el Plan Maestro.
+
+---
+ **Última sincronización con GitHub:** 2025-10-26 01:19  100 % sincronizado.
+
