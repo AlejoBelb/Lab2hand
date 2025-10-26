@@ -1,32 +1,82 @@
-# Dependencias
+# ============================================
+# 🚀 LAB2HAND - ARCHIVOS IGNORADOS POR GIT
+# ============================================
+
+# --- Node ---
 node_modules/
-
-# Entorno y secretos
-.env
-.env.local
-.env.*.local
-
-# Prisma
-src/generated/
-src/generated/prisma/
-
-# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-logs/
-*.log
+package-lock.json
+.pnpm-debug.log*
 
-# Builds / caches
+# --- Build / Dist ---
 dist/
 build/
-.tmp/
+out/
 .cache/
+.tmp/
 coverage/
-.DS_Store
 
-# Sistema / editor
+# --- Archivos del sistema operativo ---
+.DS_Store
 Thumbs.db
+desktop.ini
+
+# --- Configuración de entorno ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- IDE / Editor ---
 .vscode/
 .idea/
+*.swp
+
+# --- Archivos grandes o temporales ---
+estructura_contenido.txt
+estructura.txt
+*.zip
+*.rar
+*.7z
+*.bak
+*.backup.prisma
+*.log
+*.tmp
+
+# --- Prisma ---
+prisma/dev.db
+prisma/dev.db-journal
+prisma/test.db
+prisma/test.db-journal
+
+# --- Archivos de caché ---
+*.pid
+*.seed
+.cache/
+*.lock
+
+# --- Resultados temporales ---
+*.csv
+*.xlsx
+*.json
+*.xml
+
+# --- Archivos de sistema Git ---
+.gitignore
+.gitkeep
+
+# --- Configuración de dependencias locales ---
+/client/node_modules/
+/server/node_modules/
+/client/dist/
+/server/dist/
+/client/.vite/
+/server/.vite/
+
+# --- Otros archivos específicos del proyecto ---
+estructura_contenido.txt
+estructura.txt
+estructura.backup.*
