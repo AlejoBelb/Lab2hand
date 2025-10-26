@@ -1,30 +1,43 @@
 // server/src/middlewares/auth.js
 
-const { getBearerFromHeader, verifyAccessToken } = require('../utils/jwt');
+// Importa JWT y las variables de entorno centralizadas
+const jwt = require('jsonwebtoken');
+const env = require('../config/env');
 
-// Middleware de autenticación por JWT en el header Authorization: Bearer <token>
-function auth(req, res, next) {
-  const token = getBearerFromHeader(req);
-  if (!token) {
-    return res.status(401).json({
-      error: 'Unauthorized',
-      message: 'Falta Authorization: Bearer <token>'
-    });
-  }
-
+// Middleware: exige un token Bearer válido y adjunta el usuario al request
+function requireAuth(req, res, next) {
   try {
-    const payload = verifyAccessToken(token);
-    req.user = {
-      id: payload.sub,
-      role: payload.role
-    };
-    return next();
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!token) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+
+    if (!env.ACCESS_TOKEN_SECRET) {
+      return res
+        .status(500)
+        .json({ error: 'ServerError', message: 'Falta ACCESS_TOKEN_SECRET' });
+    }
+
+    const payload = jwt.verify(token, env.ACCESS_TOKEN_SECRET);
+    req.user = { id: payload.sub, role: payload.role };
+    next();
   } catch (err) {
-    return res.status(401).json({
-      error: 'Unauthorized',
-      message: 'Token inválido o expirado'
-    });
+    return res.status(401).json({ error: 'No autorizado' });
   }
 }
 
-module.exports = auth;
+// Middleware: exige que el usuario tenga uno de los roles indicados
+function requireRole(roles = []) {
+  return (req, res, next) => {
+    if (!req.user?.role) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+    if (roles.length && !roles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Prohibido' });
+    }
+    next();
+  };
+}
+
+module.exports = { requireAuth, requireRole };

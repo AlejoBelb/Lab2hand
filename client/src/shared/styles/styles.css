@@ -1,7 +1,8 @@
-/* ========================================================================
-   Variables y base
-   ======================================================================== */
+/* =========================================================================
+   Variables y base (tema oscuro) + tipografía accesible
+   ========================================================================= */
 :root {
+  /* Paleta existente */
   --bg: #0b0f19;
   --card: #121826;
   --muted: #9aa4b2;
@@ -10,6 +11,19 @@
   --accent: #60a5fa;
   --danger: #f87171;
   --border: #1f2937;
+
+  /* Tipografía y escala (nuevas) */
+  --font-size-base: 16px;
+  --font-size-sm: 0.9375rem;   /* 15px */
+  --font-size-md: 1.0625rem;   /* 17px */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --line-height: 1.6;
+
+  /* Radios y sombras suaves (para tarjetas y botones) */
+  --radius: 12px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
+  --shadow-md: 0 6px 22px rgba(0,0,0,0.35);
 }
 
 * { box-sizing: border-box; }
@@ -18,13 +32,39 @@ html, body, #root { height: 100%; }
 body {
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
   background: linear-gradient(180deg, var(--bg), #0e1422);
+  color: var(--text);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Encabezados y párrafos con mejor legibilidad */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 0.6rem 0;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+h1 { font-size: 2rem; }        /* 32px */
+h2 { font-size: 1.5rem; }      /* 24px */
+h3 { font-size: 1.25rem; }     /* 20px */
+
+p {
+  margin: 0 0 0.9rem 0;
+  font-size: var(--font-size-md);
   color: var(--text);
 }
 
-/* ========================================================================
+/* Enlaces */
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* =========================================================================
    Layout general y navegación superior
-   ======================================================================== */
+   ========================================================================= */
 .app-shell {
   min-height: 100vh;
   display: grid;
@@ -67,18 +107,12 @@ body {
   color: #ffffff;
 }
 
-.content {
-  padding: 1rem;
-}
+.content { padding: 1rem; }
+.page-header { max-width: 1400px; margin: 0 auto 1rem auto; }
 
-.page-header {
-  max-width: 1400px;
-  margin: 0 auto 1rem auto;
-}
-
-/* ========================================================================
+/* =========================================================================
    Contenedores y grids
-   ======================================================================== */
+   ========================================================================= */
 .container {
   max-width: 1400px;
   margin: 24px auto;
@@ -133,15 +167,15 @@ body {
   flex-wrap: wrap;
 }
 
-/* ========================================================================
+/* =========================================================================
    Tarjetas
-   ======================================================================== */
+   ========================================================================= */
 .card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  box-shadow: var(--shadow-sm);
 }
 .card h2 { margin: 0 0 10px 0; font-size: 1.35rem; }
 
@@ -151,44 +185,121 @@ hr.sep {
   margin: 16px 0;
 }
 
-/* ========================================================================
-   Inputs y botones
-   ======================================================================== */
+/* =========================================================================
+   Inputs y botones — accesibles y cómodos de leer
+   ========================================================================= */
 input, select, button, textarea {
   background: #0f1625;
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px 12px;
+  font-size: var(--font-size-md);
+  line-height: 1.4;
 }
+
 input:focus, select:focus, textarea:focus {
-  outline: 2px solid var(--accent);
+  outline: 0;
   border-color: transparent;
+  box-shadow: 0 0 0 4px rgba(96,165,250,0.3); /* halo accesible */
+}
+
+/* Estado inválido (si se usa) */
+input[aria-invalid="true"], .is-invalid {
+  border-color: rgba(248,113,113,0.75);
+  box-shadow: 0 0 0 3px rgba(248,113,113,0.25);
+}
+
+/* Grupo de input con iconos (útil para ojo de contraseña en el paso 2/2) */
+.input-group {
+  position: relative;
+  display: grid;
+}
+.input-group > input {
+  padding-right: 42px; /* espacio para el botón del ojo */
+}
+.input-action {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 30px;
+  width: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.input-action:hover {
+  background: rgba(255,255,255,0.06);
+}
+.input-action:active {
+  transform: translateY(calc(-50% + 1px));
 }
 
 button {
   cursor: pointer;
-  transition: transform .05s ease-in-out, opacity .2s;
+  transition: transform .05s ease-in-out, opacity .2s, filter .15s, box-shadow .15s;
+  border-radius: var(--radius);
+  box-shadow: none;
 }
+button:hover { filter: brightness(1.02); }
 button:active { transform: translateY(1px); }
 
-button.primary { background: var(--accent); color: #0b1220; border-color: transparent; }
+button.primary {
+  background: var(--accent);
+  color: #0b1220;
+  border-color: transparent;
+}
 button.ghost { background: transparent; }
 button.danger { background: var(--danger); border-color: transparent; }
 
 .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
-/* ========================================================================
+/* ===== Botones deshabilitados (bloqueados) ===== */
+button:disabled,
+button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(12%);
+  box-shadow: none;
+  transform: none;
+}
+
+/* Evitar efectos hover/active cuando está deshabilitado */
+button:disabled:hover,
+button[disabled]:hover,
+button:disabled:active,
+button[disabled]:active {
+  opacity: 0.5;
+  transform: none;
+}
+
+/* Clase auxiliar por si se quiere reforzar visualmente además del atributo disabled */
+.btn-disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  filter: grayscale(12%) !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+  transform: none !important;
+}
+
+/* =========================================================================
    Tablas generales
-   ======================================================================== */
+   ========================================================================= */
 table { width: 100%; border-collapse: collapse; margin-top: 8px; }
 th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
 th { text-align: left; color: var(--muted); font-weight: 600; }
 td input { width: 100%; }
 
-/* ========================================================================
+/* =========================================================================
    Utilitarios de texto
-   ======================================================================== */
+   ========================================================================= */
 .badge { display: inline-block; font-size: 12px; color: #0b1220; background: var(--primary); border-radius: 999px; padding: 2px 10px; margin-left: 8px; }
 .small { font-size: 12px; color: var(--muted); }
 .subtitle { color: var(--muted); margin-top: -6px; }
@@ -196,9 +307,9 @@ td input { width: 100%; }
 .footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 16px; }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
-/* ========================================================================
+/* =========================================================================
    Vistas y contenedores de SVG
-   ======================================================================== */
+   ========================================================================= */
 .view-box { overflow: visible; }
 .post-empty {
   padding: 16px;
@@ -209,18 +320,18 @@ td input { width: 100%; }
 }
 .post-msg { color: var(--muted); }
 
-/* ========================================================================
+/* =========================================================================
    Animaciones sutiles
-   ======================================================================== */
+   ========================================================================= */
 .fade-out { animation: tankFade 500ms ease-in forwards; }
 @keyframes tankFade {
   from { opacity: 1; transform: scale(1); }
   to   { opacity: 0; transform: scale(0.98); }
 }
 
-/* ========================================================================
+/* =========================================================================
    Tabla de capturas con scroll y encabezado fijo
-   ======================================================================== */
+   ========================================================================= */
 .table-wrap {
   width: 100%;
   border: 1px solid var(--border);
@@ -263,9 +374,9 @@ td input { width: 100%; }
   }
 }
 
-/* ========================================================================
+/* =========================================================================
    Secciones colapsables
-   ======================================================================== */
+   ========================================================================= */
 .grid-1 { display: grid; grid-template-columns: 1fr; gap: 16px; }
 
 .card-header {
@@ -317,9 +428,9 @@ td input { width: 100%; }
 .container-collapsed .right-card { grid-column: 1 / span 2; }
 .right-card > .card-body { width: 100%; }
 
-/* ========================================================================
+/* =========================================================================
    Sidebar colapsable tipo riel
-   ======================================================================== */
+   ========================================================================= */
 .layout-shell {
   --sidebarW: 340px;
   --railW: 22px;
@@ -377,9 +488,9 @@ td input { width: 100%; }
 }
 .layout-shell:not(.is-collapsed) .sidebar-handle svg { transform: rotate(180deg); }
 
-/* ========================================================================
+/* =========================================================================
    Panel derecho: tanque y tabla lado a lado
-   ======================================================================== */
+   ========================================================================= */
 .right-split {
   display: grid;
   grid-template-columns: minmax(640px, 1fr) 420px;
@@ -480,9 +591,9 @@ td input { width: 100%; }
   margin-bottom: 6px;
 }
 
-/* ========================================================================
+/* =========================================================================
    Controles de simulación
-   ======================================================================== */
+   ========================================================================= */
 .controls-sim { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
 .controls-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .label-inline { font-size: 0.95rem; color: #c9d3df; }
@@ -495,9 +606,9 @@ td input { width: 100%; }
   outline: none;
 }
 
-/* ========================================================================
+/* =========================================================================
    Área de gráficas
-   ======================================================================== */
+   ========================================================================= */
 .chart-area {
   position: relative;
   width: 100%;
@@ -508,35 +619,6 @@ td input { width: 100%; }
 }
 @media (min-height: 900px) {
   .chart-area { height: 380px; min-height: 380px; }
-}
-
-/* ===== Botones deshabilitados (bloqueados) ===== */
-button:disabled,
-button[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
-  filter: grayscale(12%);
-  box-shadow: none;
-  transform: none;
-}
-
-/* Evitar efectos hover/active cuando está deshabilitado */
-button:disabled:hover,
-button[disabled]:hover,
-button:disabled:active,
-button[disabled]:active {
-  opacity: 0.5;
-  transform: none;
-}
-
-/* Clase auxiliar por si se quiere reforzar visualmente además del atributo disabled */
-.btn-disabled {
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
-  filter: grayscale(12%) !important;
-  box-shadow: none !important;
-  pointer-events: none !important;
-  transform: none !important;
 }
 
 /* ===== Overlay de FINALIZADO estilo videojuego ===== */
@@ -607,4 +689,109 @@ button[disabled]:active {
 @keyframes overlayFade {
   0%   { opacity: 0; }
   100% { opacity: 1; }
+}
+
+/* client/src/shared/styles/styles.css */
+
+/* Fondo global oscuro con degradado suave */
+html, body, #root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background:
+    radial-gradient(1000px 600px at 100% 0%, rgba(15,23,42,0.55) 0%, rgba(11,18,32,0) 60%),
+    radial-gradient(900px 500px at 0% 100%, rgba(8,47,73,0.45) 0%, rgba(11,18,32,0) 55%),
+    linear-gradient(180deg, #0B1220 0%, #0E1628 100%);
+  color: #E5E7EB;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ancho máximo y densidad */
+.container-max {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding-inline: 10px;
+}
+
+/* Glass utilities */
+.glass {
+  background: rgba(16, 24, 40, 0.60);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 12px;
+}
+
+.glass-soft {
+  background: rgba(17, 24, 39, 0.40);
+  border: 1px solid rgba(148, 163, 184, 0.20);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 10px;
+}
+
+/* Tarjetas del menú con glass y hover sutil */
+.glass-card {
+  background: rgba(17, 24, 39, 0.50);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 14px;
+  transition: transform .05s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.glass-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(2, 6, 23, .35);
+  border-color: rgba(148, 163, 184, 0.32);
+}
+
+/* Chips */
+.chip-info {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #93C5FD;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Ajustes de densidad y tipografía */
+h1, h2, h3 { margin: 0; }
+section, header, nav { margin: 0; }
+
+/* Ajuste de espaciado entre el título H1 del experimento y la línea de modelo/atajos */
+.exp-content h1 {
+  margin-bottom: 10px; /* separa el H1 del bloque siguiente */
+}
+.exp-content h1 + * {
+  margin-top: 8px !important; /* aumenta aire por si el siguiente elemento trae márgenes colapsados */
+}
+
+/* Panel de experimento consistente (oscuro + glass) */
+.exp-panel {
+  background: rgba(17, 24, 39, 0.50);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+/* Espaciado de títulos dentro de vistas de experimento */
+.exp-content h1 {
+  margin-bottom: 10px;
+}
+.exp-content h1 + * {
+  margin-top: 8px !important;
+}
+
+/* MAS: ocultar cabecera/botón redundante si existe (la navegación ya está en Tabs) */
+.exp-content button[title*="Volver a Spring"],
+.exp-content button[aria-label*="Volver a Spring"] {
+  display: none !important;
 }

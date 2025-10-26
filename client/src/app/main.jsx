@@ -1,9 +1,16 @@
+// client/src/app/main.jsx
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import RouterApp from "./RouterApp.jsx";
 import "../shared/styles/styles.css";
+import "../shared/styles/glass.css";
+import { AuthProvider } from "../lib/auth/AuthContext.jsx";
 
-// Reinicio del tiempo simulado global del MAS al disparar un evento
+import { FluentProvider } from "@fluentui/react-components";
+import { fluentTheme } from "./fluentTheme";
+
+// Listener global MAS
 (function registerResetListener() {
   if (typeof window !== "undefined" && !window.__mas_reset_bound) {
     window.__mas_reset_bound = true;
@@ -14,15 +21,17 @@ import "../shared/styles/styles.css";
       },
     });
     window.addEventListener("reset-time", () => {
-      // Se notifica a los observadores que deseen reiniciar contadores propios.
-      // Este hook deja el mecanismo listo si luego se extiende la simulación.
+      /* Placeholder para reinicio de contadores */
     });
   }
 })();
 
-
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <RouterApp />
+    <FluentProvider theme={fluentTheme} style={{ minHeight: "100vh" }}>
+      <AuthProvider>
+        <RouterApp />
+      </AuthProvider>
+    </FluentProvider>
   </React.StrictMode>
 );

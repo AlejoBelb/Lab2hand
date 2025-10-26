@@ -1,46 +1,37 @@
 // server/src/utils/jwt.js
 
+// Utilidades para firmar y verificar JWT de acceso y refresh.
+// Usa secretos centralizados desde config/env para evitar leer process.env directo.
+
 const jwt = require('jsonwebtoken');
+const env = require('../config/env');
 
-// Parámetros cargados desde variables de entorno
-const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
-const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-const ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || '15m';
-const REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
-
-// Firma un access token con expiración corta para autenticación en API
-function signAccessToken(payload = {}, options = {}) {
-  return jwt.sign(payload, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN, ...options });
+// Firma token de acceso (válido típicamente 15 minutos)
+function signAccessToken(payload, options = {}) {
+  const secret = env.ACCESS_TOKEN_SECRET;
+  if (!secret) throw new Error('ACCESS_TOKEN_SECRET no configurado');
+  return jwt.sign(payload, secret, { expiresIn: '15m', ...options });
 }
 
-// Firma un refresh token con expiración más larga para renovación de sesión
-function signRefreshToken(payload = {}, options = {}) {
-  return jwt.sign(payload, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN, ...options });
+// Firma token de refresh (válido típicamente 7 días)
+function signRefreshToken(payload, options = {}) {
+  const secret = env.REFRESH_TOKEN_SECRET;
+  if (!secret) throw new Error('REFRESH_TOKEN_SECRET no configurado');
+  return jwt.sign(payload, secret, { expiresIn: '7d', ...options });
 }
 
-// Verifica un access token y retorna el payload si es válido
+// Verifica token de acceso
 function verifyAccessToken(token) {
-  return jwt.verify(token, ACCESS_SECRET);
+  const secret = env.ACCESS_TOKEN_SECRET;
+  if (!secret) throw new Error('ACCESS_TOKEN_SECRET no configurado');
+  return jwt.verify(token, secret);
 }
 
-// Verifica un refresh token y retorna el payload si es válido
+// Verifica token de refresh
 function verifyRefreshToken(token) {
-  return jwt.verify(token, REFRESH_SECRET);
-}
-
-// Decodifica un token sin verificar firma (útil para debugging)
-function decodeToken(token) {
-  return jwt.decode(token);
-}
-
-// Extrae el token Bearer del header Authorization
-function getBearerFromHeader(req) {
-  const header = req.headers?.authorization || '';
-  const parts = header.split(' ');
-  if (parts.length !== 2) return null;
-  const [scheme, token] = parts;
-  if (scheme.toLowerCase() !== 'bearer' || !token) return null;
-  return token;
+  const secret = env.REFRESH_TOKEN_SECRET;
+  if (!secret) throw new Error('REFRESH_TOKEN_SECRET no configurado');
+  return jwt.verify(token, secret);
 }
 
 module.exports = {
@@ -48,6 +39,4 @@ module.exports = {
   signRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
-  decodeToken,
-  getBearerFromHeader
 };

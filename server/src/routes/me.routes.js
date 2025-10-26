@@ -1,16 +1,20 @@
 // server/src/routes/me.routes.js
 
-const { Router } = require('express');
-const auth = require('../middlewares/auth');
-const authorize = require('../middlewares/authorize');
-const { getMe, adminCheck } = require('../controllers/me.controller');
+const express = require('express');
+const router = express.Router();
 
-const router = Router();
+// Controlador
+const meController = require('../controllers/me.controller');
 
-// Perfil del usuario autenticado
-router.get('/', auth, getMe);
+// Middlewares (usar DESTRUCTURING correcto)
+const { requireAuth, requireRole } = require('../middlewares/auth');
 
-// Ejemplo de endpoint que requiere rol ADMIN
-router.get('/admin-check', auth, authorize('ADMIN'), adminCheck);
+// GET /api/me -> perfil del usuario autenticado
+router.get('/', requireAuth, meController.me);
+
+// GET /api/me/admin-check -> solo ADMIN
+router.get('/admin-check', requireAuth, requireRole(['ADMIN']), (req, res) => {
+  res.json({ ok: true, message: 'Acceso ADMIN concedido' });
+});
 
 module.exports = router;

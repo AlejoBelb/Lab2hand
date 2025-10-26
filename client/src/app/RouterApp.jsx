@@ -1,32 +1,100 @@
 // client/src/app/RouterApp.jsx
+
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 
-// Páginas existentes
+// Layout
+import AppHeader from "../shared/components/AppHeader.jsx";
+import AppFooter from "../shared/components/AppFooter.jsx";
+import BreadcrumbsBar from "../shared/components/BreadcrumbsBar.jsx";
+import BackToMenu from "../shared/components/BackToMenu.jsx";
+
+// Páginas
+import HomeMenu from "../pages/HomeMenu.jsx";
 import BernoulliPage from "../experiments/bernoulli/pages/BernoulliPage.jsx";
-import HookeStatic from "../experiments/spring-static/pages/HookeStatic.jsx";
 
-/**
- * Definición de rutas principales de la aplicación.
- * Se eliminan los enlaces y la ruta de MAS porque será un modo interno de Spring (static).
- */
+// Spring wrappers
+import SpringStaticWrapper from "../experiments/spring-static/pages/SpringStaticWrapper.jsx";
+import SpringMasWrapper from "../experiments/spring-static/pages/SpringMasWrapper.jsx";
+
+// Login
+import LoginPage from "../pages/loginPage.jsx";
+
+// Rutas de diagnóstico y protección
+import DemoAuthUsers from "../pages/DemoAuthUsers.jsx";
+import { RequireRole } from "../lib/auth/RequireAuth.jsx";
+
+function BaseLayout() {
+  return (
+    <>
+      <AppHeader />
+      <main className="container-max" style={{ padding: "8px 10px" }}>
+        <BreadcrumbsBar />
+        <Outlet />
+      </main>
+      <AppFooter />
+    </>
+  );
+}
+
+function BernoulliWrapper() {
+  return (
+    <>
+      <BackToMenu />
+      <BernoulliPage />
+    </>
+  );
+}
+
+function SpringWrapper() {
+  return (
+    <>
+      <BackToMenu />
+      <SpringStaticWrapper />
+    </>
+  );
+}
+
+function SpringMASRoute() {
+  return (
+    <>
+      <BackToMenu />
+      <SpringMasWrapper />
+    </>
+  );
+}
+
 export default function RouterApp() {
   return (
     <BrowserRouter>
-      {/* Barra de navegación principal */}
-      <nav style={{ display: "flex", gap: 16, padding: "8px 16px" }}>
-        <Link to="/experiments/bernoulli">Bernoulli</Link>
-        <Link to="/experiments/spring-static">Spring (static)</Link>
-      </nav>
-
       <Routes>
-        {/* Rutas de experimentos */}
-        <Route path="/experiments/bernoulli" element={<BernoulliPage />} />
-        <Route path="/experiments/spring-static" element={<HookeStatic />} />
+        <Route element={<BaseLayout />}>
+          <Route path="/" element={<HomeMenu />} />
 
-        {/* Redirecciones por defecto */}
-        <Route path="/" element={<Navigate to="/experiments/bernoulli" replace />} />
-        <Route path="*" element={<Navigate to="/experiments/bernoulli" replace />} />
+          {/* Experimentos */}
+          <Route path="/experiments/bernoulli" element={<BernoulliWrapper />} />
+          <Route path="/experiments/spring" element={<SpringWrapper />} />
+          <Route path="/experiments/spring/mas" element={<SpringMASRoute />} />
+
+          {/* Login */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Demo/ADMIN (solo dev) */}
+          {import.meta.env.DEV && <Route path="/demo-auth" element={<DemoAuthUsers />} />}
+          {import.meta.env.DEV && (
+            <Route
+              path="/admin/users"
+              element={
+                <RequireRole roles={["ADMIN"]} redirectTo="/login">
+                  <DemoAuthUsers />
+                </RequireRole>
+              }
+            />
+          )}
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

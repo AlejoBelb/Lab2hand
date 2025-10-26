@@ -1,0 +1,87 @@
+/* client/src/shared/styles/glass.css */
+
+/* Fondo global: oscuro azulado con gradiente suave y fija para evitar parpadeos */
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  /* Gradiente tenue que combina con paneles dark de los experimentos */
+  background:
+    radial-gradient(1200px 800px at 100% 0%, rgba(14, 23, 42, 0.55) 0%, rgba(14, 23, 42, 0) 60%),
+    radial-gradient(1000px 700px at 0% 100%, rgba(8, 14, 28, 0.6) 0%, rgba(8, 14, 28, 0) 55%),
+    linear-gradient(180deg, #0b1220 0%, #0e182e 100%);
+  background-attachment: fixed, fixed, fixed;
+  color: #e5e7eb;
+}
+
+/* Contenedor principal con densidad moderada y ancho útil mayor */
+.container-main {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 10px 12px; /* más compacto que antes */
+}
+
+/* Superficies traslúcidas tipo “glass” */
+.glass {
+  background: rgba(17, 24, 39, 0.48);            /* #111827 con transparencia */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 6px 24px rgba(2, 6, 23, 0.25);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border-radius: 12px;
+}
+
+/* Variante de superficie más sutil para barras y migas */
+.glass-bar {
+  background: rgba(17, 24, 39, 0.38);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+}
+
+/* Tarjetas glass del menú */
+.card-glass {
+  background: rgba(17, 24, 39, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  transition: transform .06s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.card-glass:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.35);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Badge sutil para “Incluye MAS” */
+.badge-soft {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #93c5fd;                  /* azul claro */
+  background: rgba(37, 99, 235, 0.16);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Migas más compactas */
+.breadcrumb-compact {
+  margin: 6px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Tipografía compacta en encabezados principales */
+.h1-compact {
+  font-size: 28px;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.hint-soft {
+  color: #9ca3af;
+}

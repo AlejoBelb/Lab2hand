@@ -1,4 +1,4 @@
-// server/prisma/schema.prisma
+// Prisma schema para Lab2hand — preserva columnas existentes para migración segura
 
 generator client {
   provider = "prisma-client-js"
@@ -9,83 +9,86 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ===== Enums =====
 enum Role {
   ADMIN
   TEACHER
   STUDENT
 }
 
-enum Visibility {
-  PRIVATE
-  UNLISTED
-  PUBLIC
-}
-
+// Mantener valores antiguos y nuevos para no romper data existente
 enum ExperimentStatus {
+  ACTIVE
+  INACTIVE
   DRAFT
   PUBLISHED
   ARCHIVED
 }
 
+enum Visibility {
+  PUBLIC
+  PRIVATE
+  UNLISTED
+}
+
+// ===== Modelos =====
+
+// Mantener columnas existentes para no perder datos
 model User {
-  // Identificador único
-  id           String         @id @default(cuid())
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  role          Role           @default(STUDENT)
 
-  // Datos básicos
-  email        String         @unique
-  passwordHash String
-  firstName    String?
-  lastName     String?
+  // Columnas existentes preservadas
+  firstName     String?
+  lastName      String?
+  isActive      Boolean?       @default(true)
 
-  // Rol y estado
-  role         Role           @default(STUDENT)
-  isActive     Boolean        @default(true)
+  // Campo opcional para mostrar nombre completo
+  displayName   String?
 
-  // Relaciones
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   refreshTokens RefreshToken[]
-  experiments   Experiment[]  @relation("UserExperiments")
-
-  // Trazabilidad
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-
-  @@index([role, isActive])
 }
 
 model RefreshToken {
-  // Identificador único
-  id         String   @id @default(cuid())
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 
-  // Token y control
-  token      String   @unique
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt  DateTime
-  revokedAt  DateTime?
-  createdAt  DateTime @default(now())
-
-  @@index([userId, expiresAt])
+  // Preservar expiresAt si ya existe en la DB
+  expiresAt DateTime?
+  revokedAt DateTime?
 }
 
 model Experiment {
-  // Identificador único
-  id          String           @id @default(cuid())
-
-  // Contenido y metadata
-  title       String
-  slug        String           @unique
+  id          String            @id @default(cuid())
+  slug        String            @unique
+  name        String
   description String?
-  status      ExperimentStatus @default(DRAFT)
-  visibility  Visibility       @default(PRIVATE)
+  visibility  Visibility        @default(PUBLIC)
+  status      ExperimentStatus  @default(ACTIVE)
+  order       Int               @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
-  // Dueño/autores
-  ownerId     String
-  owner       User             @relation("UserExperiments", fields: [ownerId], references: [id])
+  scenarios   Scenario[]
+}
 
-  // Trazabilidad
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+model Scenario {
+  id           String     @id @default(cuid())
+  experimentId String
+  experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  slug         String
+  name         String
+  order        Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
-  @@index([ownerId, status, visibility])
-  @@index([title])
+  @@unique([experimentId, slug])
+  @@index([experimentId, order])
 }

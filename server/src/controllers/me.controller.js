@@ -1,10 +1,17 @@
 // server/src/controllers/me.controller.js
 
-const prisma = require('../config/prisma');
+// Cliente de Prisma generado en server/src/generated/prisma
+const { PrismaClient } = require('../generated/prisma');
+const prisma = new PrismaClient();
 
-// Devuelve el perfil del usuario autenticado a partir de req.user.id
-async function getMe(req, res, next) {
+// GET /api/me -> devuelve el perfil del usuario autenticado
+// Requiere que requireAuth haya puesto req.user = { id, role }
+async function me(req, res) {
   try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       select: {
@@ -15,26 +22,19 @@ async function getMe(req, res, next) {
         role: true,
         isActive: true,
         createdAt: true,
-        updatedAt: true
-      }
+        updatedAt: true,
+      },
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'NotFound', message: 'Usuario no encontrado' });
+      return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    return res.status(200).json({ user });
+    return res.json({ user });
   } catch (err) {
-    return next(err);
+    console.error('[me.controller] Error:', err);
+    return res.status(500).json({ error: 'ServerError' });
   }
 }
 
-// Endpoint de verificación de acceso para rol ADMIN
-async function adminCheck(req, res) {
-  return res.status(200).json({ ok: true, message: 'Acceso ADMIN concedido' });
-}
-
-module.exports = {
-  getMe,
-  adminCheck
-};
+module.exports = { me };
