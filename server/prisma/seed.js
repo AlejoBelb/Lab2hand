@@ -1,7 +1,22 @@
-// Seed de menú inicial: Experimentos y Escenarios para Lab2hand
+// Seed inicial de Lab2hand
+// - Experimentos y escenarios
+// - Usuario ADMIN del sistema
 
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+
 const prisma = new PrismaClient();
+
+/* ======================================================
+   CONFIG ADMIN
+====================================================== */
+
+const ADMIN_EMAIL = 'admin@lab2hand.com';
+const ADMIN_PASSWORD = 'Admin1234!';
+
+/* ======================================================
+   DATA: EXPERIMENTOS
+====================================================== */
 
 const experiments = [
   {
@@ -30,8 +45,11 @@ const experiments = [
   },
 ];
 
+/* ======================================================
+   UPSERT EXPERIMENTOS + ESCENARIOS
+====================================================== */
+
 async function upsertExperiment(exp) {
-  // Crear/actualizar el experimento
   const base = await prisma.experiment.upsert({
     where: { slug: exp.slug },
     update: {
@@ -51,13 +69,12 @@ async function upsertExperiment(exp) {
     },
   });
 
-  // Mapear escenarios existentes por slug
   const existing = await prisma.scenario.findMany({
     where: { experimentId: base.id },
   });
+
   const existingMap = new Map(existing.map(s => [s.slug, s]));
 
-  // Upsert de escenarios
   for (const s of exp.scenarios) {
     if (existingMap.has(s.slug)) {
       await prisma.scenario.update({
@@ -77,10 +94,46 @@ async function upsertExperiment(exp) {
   }
 }
 
+/* ======================================================
+   UPSERT ADMIN
+====================================================== */
+
+async function upsertAdmin() {
+  const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+
+  await prisma.user.upsert({
+    where: { email: ADMIN_EMAIL },
+    update: {
+      role: 'ADMIN',
+      isActive: true,
+    },
+    create: {
+      email: ADMIN_EMAIL,
+      passwordHash,
+      firstName: 'Admin',
+      lastName: 'Lab2hand',
+      role: 'ADMIN',
+      isActive: true,
+    },
+  });
+
+  console.log('✅ Admin asegurado:', ADMIN_EMAIL);
+}
+
+/* ======================================================
+   MAIN
+====================================================== */
+
 async function main() {
+  console.log('🌱 Ejecutando seed...');
+
   for (const exp of experiments) {
     await upsertExperiment(exp);
   }
+
+  await upsertAdmin();
+
+  console.log('✅ Seed completado');
 }
 
 main()
@@ -89,7 +142,7 @@ main()
     process.exit(0);
   })
   .catch(async (e) => {
-    console.error(e);
+    console.error('❌ Error en seed:', e);
     await prisma.$disconnect();
     process.exit(1);
   });

@@ -1,73 +1,93 @@
 // server/src/app.js
+// Aplicación Express principal de Lab2hand con middlewares y routers.
 
 const express = require('express');
-const helmet = require('helmet');
 const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const rateLimit = require('express-rate-limit');
 
-// Config
-const corsOptions = require('./config/cors');
-const rateLimiter = require('./config/rateLimit');
-
-// Middlewares
-const requestLogger = require('./middlewares/requestLogger');
-const validate = require('./middlewares/validate');
-const errorHandler = require('./middlewares/errorHandler');
-const notFound = require('./middlewares/notFound');
-
-// Rutas existentes
-const authRoutes = require('./routes/auth.routes');
-const meRoutes = require('./routes/me.routes');
-
-// Nueva ruta de experiments
-const experimentRoutes = require('./routes/experiment.routes');
+// Routers
+const authRouter = require('./routes/auth.routes');
+const echoRouter = require('./routes/echo.routes');
+const healthRouter = require('./routes/health.routes');
+const experimentRouter = require('./routes/experiment.routes');
+const meRouter = require('./routes/me.routes');
+const menuRouter = require('./routes/menu.routes');
+const verificationRouter = require('./routes/verification.routes');
+const adminRouter = require('./routes/admin.routes');
+const teacherCoursesRouter = require('./routes/teacherCourses.routes');
+const courseExperimentsRouter = require('./routes/courseExperiments.routes'); // ← NUEVO
 
 const app = express();
 
-// Seguridad y utilidades
+// Configuración de CORS
+const allowedOrigins = [
+  process.env.CLIENT_ORIGIN || 'http://127.0.0.1:5173',
+  'http://localhost:5173'
+];
+
 app.use(helmet());
-app.use(cors(corsOptions));
-app.use(rateLimiter);
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(null, false);
+    },
+    credentials: true
+  })
+);
+app.use(morgan('dev'));
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
-app.use(requestLogger());
 
-// Salud
-app.get('/api/health', (req, res) => {
-  res.json({
-    service: 'lab2hand-api',
-    status: 'ok',
-    uptimeMs: process.uptime() * 1000,
-    timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV || 'development',
-    version: '1.0.0',
-  });
-});
+// Archivos estáticos
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Echo (útil para probar parseo de JSON, sin validadores)
-app.post('/api/echo', (req, res) => {
-  res.json({
-    ok: true,
-    data: {
-      body: req.body || {},
-      query: req.query || {},
-      params: req.params || {},
-    },
-  });
-});
+// Rate limit
+app.use(
+  '/api/',
+  rateLimit({
+    windowMs: 60 * 1000,
+    max: 300,
+    standardHeaders: true,
+    legacyHeaders: false
+  })
+);
 
-
-// Auth y perfil
-app.use('/api/auth', authRoutes);
-app.use('/api/me', meRoutes);
-
-// Experiments (nuevo)
-app.use('/api/experiments', experimentRoutes);
+// =======================
+// RUTAS API
+// =======================
+app.use('/api/admin', adminRouter);
+app.use('/api/teacher', teacherCoursesRouter);
+app.use('/api/courses', courseExperimentsRouter); // ← AQUÍ
+app.use('/api/health', healthRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/echo', echoRouter);
+app.use('/api/experiments', experimentRouter);
+app.use('/api/me', meRouter);
+app.use('/api/menu', menuRouter);
+app.use('/api/verification', verificationRouter);
 
 // 404
-app.use(notFound);
+app.use((req, res) => {
+  res.status(404).json({
+    status: 'error',
+    message: 'Ruta no encontrada',
+    path: req.originalUrl
+  });
+});
 
-// Manejo de errores central
-app.use(errorHandler);
+// Error handler
+app.use((err, _req, res, _next) => {
+  const status = err.status || 500;
+  res.status(status).json({
+    status: 'error',
+    message: err.message || 'Error interno del servidor'
+  });
+});
 
 module.exports = app;

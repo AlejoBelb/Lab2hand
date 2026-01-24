@@ -1,5 +1,3 @@
-// Prisma schema para Lab2hand — preserva columnas existentes para migración segura
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,86 +7,188 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ===== Enums =====
-enum Role {
+// =====================
+// ENUMS
+// =====================
+enum UserRole {
   ADMIN
   TEACHER
   STUDENT
 }
 
-// Mantener valores antiguos y nuevos para no romper data existente
-enum ExperimentStatus {
+enum CourseStatus {
   ACTIVE
-  INACTIVE
-  DRAFT
-  PUBLISHED
+  EXPIRED
   ARCHIVED
 }
 
-enum Visibility {
-  PUBLIC
-  PRIVATE
-  UNLISTED
+enum TeacherCourseRole {
+  OWNER
+  EDITOR
+  VIEWER
 }
 
-// ===== Modelos =====
+// =====================
+// MODELS
+// =====================
+model Institution {
+  id      String  @id @default(cuid())
+  name    String
+  country String?
+  city    String?
 
-// Mantener columnas existentes para no perder datos
-model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  passwordHash  String
-  role          Role           @default(STUDENT)
+  users   User[]
+  courses Course[]
 
-  // Columnas existentes preservadas
-  firstName     String?
-  lastName      String?
-  isActive      Boolean?       @default(true)
-
-  // Campo opcional para mostrar nombre completo
-  displayName   String?
-
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  refreshTokens RefreshToken[]
-}
-
-model RefreshToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
-  // Preservar expiresAt si ya existe en la DB
-  expiresAt DateTime?
-  revokedAt DateTime?
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  passwordHash    String
+  firstName       String?
+  lastName        String?
+  role            UserRole
+  isActive        Boolean  @default(true)
+  pendingApproval Boolean  @default(false)
+
+  institutionId String?
+  institution   Institution? @relation(fields: [institutionId], references: [id])
+
+  taughtCourses   CourseTeacher[]
+  enrolledCourses CourseStudent[]
+  refreshTokens   RefreshToken[]
+  guidesCreated   Guide[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Course {
+  id           String       @id @default(cuid())
+  name         String
+  grade        String // Ej: "10°"
+  group        String // Ej: "A", "B"
+  academicYear String // Ej: "2025"
+  status       CourseStatus @default(ACTIVE)
+
+  startsAt    DateTime
+  endsAt      DateTime
+  experiments CourseExperiment[]
+
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id])
+
+  teachers CourseTeacher[]
+  students CourseStudent[]
+  guides   Guide[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([institutionId, status])
+}
+
+model CourseTeacher {
+  id String @id @default(cuid())
+
+  courseId  String
+  teacherId String
+
+  role TeacherCourseRole @default(OWNER)
+
+  course  Course @relation(fields: [courseId], references: [id])
+  teacher User   @relation(fields: [teacherId], references: [id])
+
+  assignedAt DateTime @default(now())
+
+  @@unique([courseId, teacherId])
+}
+
+model CourseStudent {
+  id String @id @default(cuid())
+
+  courseId  String
+  studentId String
+
+  course  Course @relation(fields: [courseId], references: [id])
+  student User   @relation(fields: [studentId], references: [id])
+
+  enrolledAt DateTime @default(now())
+
+  @@unique([courseId, studentId])
+}
+
+model Guide {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  fileUrl     String?
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id])
+
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Experiment {
-  id          String            @id @default(cuid())
-  slug        String            @unique
+  id          String  @id @default(cuid())
+  slug        String  @unique
   name        String
   description String?
-  visibility  Visibility        @default(PUBLIC)
-  status      ExperimentStatus  @default(ACTIVE)
-  order       Int               @default(0)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  visibility  String
+  status      String
+  order       Int
 
-  scenarios   Scenario[]
+  scenarios Scenario[]
+  courses   CourseExperiment[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
 }
 
 model Scenario {
-  id           String     @id @default(cuid())
+  id    String @id @default(cuid())
+  slug  String
+  name  String
+  order Int
+
   experimentId String
-  experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
-  slug         String
-  name         String
-  order        Int        @default(0)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  experiment   Experiment @relation(fields: [experimentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([experimentId, slug])
-  @@index([experimentId, order])
+}
+
+model CourseExperiment {
+  id           String   @id @default(cuid())
+  courseId     String
+  experimentId String
+  createdAt    DateTime @default(now())
+
+  course     Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  experiment Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, experimentId])
+  @@index([courseId])
+  @@index([experimentId])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  revokedAt DateTime?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }

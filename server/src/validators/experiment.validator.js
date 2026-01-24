@@ -1,4 +1,6 @@
-﻿const { checkSchema } = require('express-validator');
+﻿// server/src/validators/experiment.validator.js
+// Validadores para experimentos usando express-validator
+const { checkSchema } = require('express-validator');
 
 const ExperimentStatus = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
 const Visibility = ['PRIVATE', 'UNLISTED', 'PUBLIC'];

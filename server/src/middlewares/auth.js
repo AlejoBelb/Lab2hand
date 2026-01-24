@@ -1,6 +1,5 @@
 // server/src/middlewares/auth.js
 
-// Importa JWT y las variables de entorno centralizadas
 const jwt = require('jsonwebtoken');
 const env = require('../config/env');
 
@@ -8,21 +7,45 @@ const env = require('../config/env');
 function requireAuth(req, res, next) {
   try {
     const authHeader = req.headers.authorization || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    console.log('[requireAuth] authHeader =>', authHeader);
+
+    const token = authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : null;
+
+    console.log('[requireAuth] token extraído =>', token);
+
     if (!token) {
+      console.log('[requireAuth] Sin token, devolviendo 401');
       return res.status(401).json({ error: 'No autorizado' });
     }
 
     if (!env.ACCESS_TOKEN_SECRET) {
+      console.log('[requireAuth] Falta ACCESS_TOKEN_SECRET en env');
       return res
         .status(500)
         .json({ error: 'ServerError', message: 'Falta ACCESS_TOKEN_SECRET' });
     }
 
+    console.log(
+      '[requireAuth] Verificando token con clave:',
+      env.ACCESS_TOKEN_SECRET.slice(0, 5),
+      '...'
+    );
+
     const payload = jwt.verify(token, env.ACCESS_TOKEN_SECRET);
-    req.user = { id: payload.sub, role: payload.role };
+    console.log('[requireAuth] payload decodificado =>', payload);
+
+    // ✅ CORRECCIÓN CLAVE (ESTA ES LA LÍNEA IMPORTANTE)
+    req.user = {
+      id: payload.sub,
+      role: payload.role,
+      institutionId: payload.institutionId || null,
+    };
+
     next();
   } catch (err) {
+    console.error('[requireAuth] Error al verificar token =>', err.message);
     return res.status(401).json({ error: 'No autorizado' });
   }
 }
@@ -33,9 +56,11 @@ function requireRole(roles = []) {
     if (!req.user?.role) {
       return res.status(401).json({ error: 'No autorizado' });
     }
+
     if (roles.length && !roles.includes(req.user.role)) {
       return res.status(403).json({ error: 'Prohibido' });
     }
+
     next();
   };
 }

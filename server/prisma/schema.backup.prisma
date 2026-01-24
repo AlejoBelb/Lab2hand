@@ -9,10 +9,130 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// -------------------------------------------------------------
+// Modelo de usuario del sistema con metadatos institucionales
+// y estado de verificación para control de roles.
+// -------------------------------------------------------------
+model User {
+  id                     String               @id @default(cuid())
+  email                  String               @unique
+  passwordHash           String
+  firstName              String?
+  lastName               String?
+  displayName            String?
+  role                   Role                 @default(STUDENT)
+  isActive               Boolean?             @default(true)
+
+  // Metadatos de procedencia e institución
+  country                String?
+  city                   String?
+  institutionName        String?
+  institutionEmail       String?
+
+  // Estado de verificación de identidad/rol
+  verificationStatus     VerificationStatus   @default(PENDING)
+  verifiedAt             DateTime?
+
+  // Auditoría
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+
+  // Relaciones
+  refreshTokens          RefreshToken[]
+  verificationRequests   VerificationRequest[]
+}
+
+// -------------------------------------------------------------
+// Tokens de actualización para sesiones seguras (JWT refresh)
+// -------------------------------------------------------------
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// -------------------------------------------------------------
+// Catálogo de experimentos de física
+// -------------------------------------------------------------
+model Experiment {
+  id          String           @id @default(cuid())
+  slug        String           @unique
+  name        String
+  description String?
+  status      ExperimentStatus @default(ACTIVE)
+  visibility  Visibility       @default(PUBLIC)
+  order       Int              @default(0)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  scenarios   Scenario[]
+}
+
+// -------------------------------------------------------------
+// Escenarios/variantes dentro de cada experimento
+// -------------------------------------------------------------
+model Scenario {
+  id           String     @id @default(cuid())
+  experimentId String
+  slug         String
+  name         String
+  order        Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  @@unique([experimentId, slug])
+  @@index([experimentId, order])
+}
+
+// -------------------------------------------------------------
+// Solicitudes de verificación de identidad/rol con documento y foto
+// -------------------------------------------------------------
+model VerificationRequest {
+  id               String             @id @default(cuid())
+  userId           String
+  documentType     DocumentType
+  documentNumber   String
+  institutionEmail String?
+  photoUrl         String
+  status           VerificationStatus @default(PENDING)
+  notes            String?
+  reviewedBy       String?
+  reviewedAt       DateTime?
+  expiresAt        DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([documentType, documentNumber])
+  @@index([userId, status])
+  @@index([status, reviewedAt])
+}
+
+// -------------------------------------------------------------
+// Enums
+// -------------------------------------------------------------
 enum Role {
   ADMIN
   TEACHER
   STUDENT
+}
+
+enum ExperimentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  ACTIVE
+  INACTIVE
 }
 
 enum Visibility {
@@ -21,71 +141,16 @@ enum Visibility {
   PUBLIC
 }
 
-enum ExperimentStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
-model User {
-  // Identificador único
-  id           String         @id @default(cuid())
-
-  // Datos básicos
-  email        String         @unique
-  passwordHash String
-  firstName    String?
-  lastName     String?
-
-  // Rol y estado
-  role         Role           @default(STUDENT)
-  isActive     Boolean        @default(true)
-
-  // Relaciones
-  refreshTokens RefreshToken[]
-  experiments   Experiment[]  @relation("UserExperiments")
-
-  // Trazabilidad
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-
-  @@index([role, isActive])
-}
-
-model RefreshToken {
-  // Identificador único
-  id         String   @id @default(cuid())
-
-  // Token y control
-  token      String   @unique
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt  DateTime
-  revokedAt  DateTime?
-  createdAt  DateTime @default(now())
-
-  @@index([userId, expiresAt])
-}
-
-model Experiment {
-  // Identificador único
-  id          String           @id @default(cuid())
-
-  // Contenido y metadata
-  title       String
-  slug        String           @unique
-  description String?
-  status      ExperimentStatus @default(DRAFT)
-  visibility  Visibility       @default(PRIVATE)
-
-  // Dueño/autores
-  ownerId     String
-  owner       User             @relation("UserExperiments", fields: [ownerId], references: [id])
-
-  // Trazabilidad
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-
-  @@index([ownerId, status, visibility])
-  @@index([title])
+enum DocumentType {
+  CC    // Cédula de ciudadanía
+  TI    // Tarjeta de identidad
+  CE    // Cédula de extranjería
+  PP    // Pasaporte
+  DNI   // Documento nacional de identidad
 }

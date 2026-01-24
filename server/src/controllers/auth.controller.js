@@ -1,53 +1,62 @@
 // server/src/controllers/auth.controller.js
 
-const {
-  registerUser,
-  loginUser,
-  refreshSession,
-  logoutByToken
-} = require('../services/auth.service');
+const { registerUser, loginUser, refreshAccessToken, logoutUser } = require('../services/auth.service');
 
-// Registra un usuario nuevo y devuelve el perfil creado
+/* ======================================================
+   REGISTER
+====================================================== */
+
 async function register(req, res, next) {
   try {
-    const { email, password, firstName, lastName, role } = req.body;
-    const user = await registerUser({ email, password, firstName, lastName, role });
-    return res.status(201).json({ user });
+    const result = await registerUser(req.body);
+
+    return res.status(201).json({
+      message: 'Usuario registrado correctamente',
+      ...result, // ← NO mutilar la respuesta del service
+    });
   } catch (err) {
-    return next(err);
+    next(err);
   }
 }
 
-// Inicia sesión: devuelve accessToken, refreshToken y perfil
+/* ======================================================
+   LOGIN
+====================================================== */
+
 async function login(req, res, next) {
   try {
-    const { email, password } = req.body;
-    const result = await loginUser({ email, password });
-    return res.status(200).json(result);
+    const result = await loginUser(req.body);
+    return res.json(result);
   } catch (err) {
-    return next(err);
+    next(err);
   }
 }
 
-// Renueva sesión con refreshToken válido
+/* ======================================================
+   REFRESH
+====================================================== */
+
 async function refresh(req, res, next) {
   try {
     const { refreshToken } = req.body;
-    const result = await refreshSession({ refreshToken });
-    return res.status(200).json(result);
+    const result = await refreshAccessToken(refreshToken);
+    return res.json(result);
   } catch (err) {
-    return next(err);
+    next(err);
   }
 }
 
-// Cierra sesión: revoca el refreshToken recibido
+/* ======================================================
+   LOGOUT
+====================================================== */
+
 async function logout(req, res, next) {
   try {
     const { refreshToken } = req.body;
-    const result = await logoutByToken({ refreshToken });
-    return res.status(200).json(result);
+    await logoutUser(refreshToken);
+    return res.status(204).send();
   } catch (err) {
-    return next(err);
+    next(err);
   }
 }
 
@@ -55,5 +64,5 @@ module.exports = {
   register,
   login,
   refresh,
-  logout
+  logout,
 };

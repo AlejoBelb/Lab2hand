@@ -1,14 +1,11 @@
 // server/src/routes/health.routes.js
+// Rutas públicas de verificación de salud del servicio.
 
 const { Router } = require('express');
-const { health, readiness } = require('../controllers/health.controller');
+const { getHealth } = require('../controllers/health.controller');
 
 const router = Router();
 
-// Endpoint de liveness: confirma que el proceso está corriendo
-router.get('/', health);
-
-// Endpoint de readiness: pensado para validar dependencias
-router.get('/ready', readiness);
+router.get('/', getHealth);
 
 module.exports = router;

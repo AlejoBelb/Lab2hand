@@ -19,8 +19,10 @@ import HookeMAS from "./HookeMAS";
    - Validación: solo números y NO negativos (m, k, g, L0 >= 0).
    - Protección: si k ≈ 0, usar ε para evitar división por cero y avisar.
    - Sin overlay “Finalizado”; el experimento es manual e indefinido.
+   - Prop optional:
+     - initialShowMAS: si es true, abre el overlay de MAS al montar.
 */
-export default function HookeStatic() {
+export default function HookeStatic({ initialShowMAS = false }) {
   const LS_KEY = "lab2hand:spring-static:v1";
 
   // Estado principal
@@ -42,8 +44,8 @@ export default function HookeStatic() {
   const [errL0, setErrL0] = useState("");
   const [warnKZero, setWarnKZero] = useState(false);
 
-  // Overlay MAS
-  const [showMAS, setShowMAS] = useState(false);
+  // Overlay MAS (inicializado con la prop)
+  const [showMAS, setShowMAS] = useState(initialShowMAS);
 
   // Utilidades
   const isNum = (v) => Number.isFinite(Number(v));
@@ -290,9 +292,9 @@ export default function HookeStatic() {
     }
     const denom = n * sumXX - sumX * sumX;
     if (Math.abs(denom) < 1e-12) return null;
-    const a = (n * sumXY - sumX * sumY) / denom; // pendiente en m/kg
-    const b = (sumY - a * sumX) / n; // intercepto en m
-    const kEst = a !== 0 ? Math.max(0, toNumOr(g, 0)) / a : NaN; // k_est = g/a
+    const a = (n * sumXY - sumX * sumY) / denom;
+    const b = (sumY - a * sumX) / n;
+    const kEst = a !== 0 ? Math.max(0, toNumOr(g, 0)) / a : NaN;
     const kVal = Math.max(0, toNumOr(k, 0));
     const errRel =
       isFinite(kEst) && kVal !== 0 ? Math.abs(kEst - kVal) / kVal : NaN;
@@ -816,7 +818,6 @@ export default function HookeStatic() {
         open={showMAS}
         onClose={() => setShowMAS(false)}
         onEditParams={() => {
-          // Mantiene el overlay abierto en este MVP; si prefieres cerrar para editar, cambia a setShowMAS(false)
           alert("Edita los parámetros en la vista estática. Este botón es informativo por ahora.");
         }}
         params={{

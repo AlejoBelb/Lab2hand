@@ -1,11 +1,8 @@
 // server/src/controllers/me.controller.js
 
-// Cliente de Prisma generado en server/src/generated/prisma
-const { PrismaClient } = require('../generated/prisma');
-const prisma = new PrismaClient();
+const prisma = require('../config/prisma');
 
-// GET /api/me -> devuelve el perfil del usuario autenticado
-// Requiere que requireAuth haya puesto req.user = { id, role }
+// GET /api/me -> perfil del usuario autenticado
 async function me(req, res) {
   try {
     if (!req.user?.id) {
@@ -14,15 +11,15 @@ async function me(req, res) {
 
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
+        institution: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            country: true,
+          },
+        },
       },
     });
 

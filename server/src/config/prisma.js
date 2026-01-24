@@ -1,20 +1,13 @@
 // server/src/config/prisma.js
+// Prisma client con log explícito de modelos (DEBUG TEMPORAL)
 
 const { PrismaClient } = require('@prisma/client');
 
-let prisma;
+const prisma = new PrismaClient();
 
-// Patrón singleton para evitar múltiples instancias en hot-reload
-if (!global.__lab2hand_prisma) {
-  global.__lab2hand_prisma = new PrismaClient({
-    // Configuración básica; agregar logs si se requiere
-    // log: ['query', 'info', 'warn', 'error']
-  });
-}
+// 🔍 DEBUG: mostrar modelos cargados por Prisma Client
+console.log('🧩 Prisma models cargados:', Object.keys(prisma));
 
-prisma = global.__lab2hand_prisma;
-
-// Hook opcional para cierre ordenado en SIGINT/SIGTERM en entornos no serverless
 process.on('SIGINT', async () => {
   try {
     await prisma.$disconnect();

@@ -1,8 +1,7 @@
 // server/src/services/experiment.service.js
 
 // Esta sección importa Prisma Client generado en src/generated/prisma
-const { PrismaClient } = require('../generated/prisma');
-const prisma = new PrismaClient();
+const prisma = require('../config/prisma');
 
 // Esta sección define constantes de validación referenciales
 const ExperimentStatus = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];

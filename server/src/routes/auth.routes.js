@@ -1,22 +1,13 @@
-// server/src/routes/auth.routes.js
+// src/routes/auth.routes.js
+// Rutas de autenticación para registro, login y tokens
 
-const { Router } = require('express');
-const validate = require('../middlewares/validate');
-const { registerRules, loginRules, refreshRules } = require('../middlewares/validators/auth');
-const { register, login, refresh, logout } = require('../controllers/auth.controller');
+const express = require('express');
+const router = express.Router();
+const authController = require('../controllers/auth.controller');
 
-const router = Router();
-
-// Registro de usuario
-router.post('/register', validate(registerRules), register);
-
-// Login
-router.post('/login', validate(loginRules), login);
-
-// Refresh de tokens
-router.post('/refresh', validate(refreshRules), refresh);
-
-// Logout (revoca refreshToken recibido)
-router.post('/logout', validate(refreshRules), logout);
+router.post('/register', authController.register);
+router.post('/login', authController.login);
+router.post('/refresh', authController.refresh);
+router.post('/logout', authController.logout);
 
 module.exports = router;
