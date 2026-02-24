@@ -1,0 +1,6 @@
+/* client/src/shared/styles/sectionHighlight.css */
+.section-highlight {
+  outline: 2px solid rgba(251, 191, 36, 0.9);
+  outline-offset: 4px;
+  transition: outline 0.3s ease;
+}

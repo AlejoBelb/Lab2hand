@@ -3,7 +3,7 @@
 const prisma = require('../config/prisma');
 
 // GET /api/teacher/courses
-// Devuelve los cursos del docente autenticado, filtrados por institución
+// Devuelve los cursos del docente autenticado, incluyendo experimentos asignados
 async function listMyCourses(req, res) {
   try {
     const { id: userId, institutionId } = req.user;
@@ -17,6 +17,7 @@ async function listMyCourses(req, res) {
     const courses = await prisma.course.findMany({
       where: {
         institutionId,
+        status: 'ACTIVE',
         teachers: {
           some: {
             teacherId: userId,
@@ -26,8 +27,23 @@ async function listMyCourses(req, res) {
       select: {
         id: true,
         name: true,
+        grade: true,
+        group: true,
+        academicYear: true,
         createdAt: true,
+        experiments: {
+          select: {
+            experiment: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
       },
+      orderBy: { createdAt: 'desc' },
     });
 
     return res.json({ courses });

@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,6 +12,7 @@ datasource db {
 // ENUMS
 // =====================
 enum UserRole {
+  SUPERADMIN
   ADMIN
   TEACHER
   STUDENT
@@ -28,6 +30,11 @@ enum TeacherCourseRole {
   VIEWER
 }
 
+enum GuideStatus {
+  DRAFT
+  PUBLISHED
+}
+
 // =====================
 // MODELS
 // =====================
@@ -36,6 +43,7 @@ model Institution {
   name    String
   country String?
   city    String?
+  isActive Boolean @default(true)
 
   users   User[]
   courses Course[]
@@ -69,9 +77,9 @@ model User {
 model Course {
   id           String       @id @default(cuid())
   name         String
-  grade        String // Ej: "10°"
-  group        String // Ej: "A", "B"
-  academicYear String // Ej: "2025"
+  grade        String
+  group        String
+  academicYear String
   status       CourseStatus @default(ACTIVE)
 
   startsAt    DateTime
@@ -122,19 +130,29 @@ model CourseStudent {
 }
 
 model Guide {
-  id          String  @id @default(cuid())
+  id          String     @id @default(cuid())
   title       String
   description String?
   fileUrl     String?
 
+  status  GuideStatus @default(DRAFT)
+  content Json?
+
   courseId String
   course   Course @relation(fields: [courseId], references: [id])
+
+  experimentId String?
+  experiment   Experiment? @relation(fields: [experimentId], references: [id])
 
   createdById String
   createdBy   User   @relation(fields: [createdById], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([courseId, status])
+  @@index([createdById, status])
+  @@index([experimentId])
 }
 
 model Experiment {
@@ -148,8 +166,10 @@ model Experiment {
 
   scenarios Scenario[]
   courses   CourseExperiment[]
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
+  guides    Guide[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Scenario {

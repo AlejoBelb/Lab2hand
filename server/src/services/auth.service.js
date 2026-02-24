@@ -3,8 +3,8 @@
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { randomUUID } = require('crypto');
 const prisma = require('../config/prisma');
-console.log('AuthService Prisma models:', Object.keys(prisma));
 
 // Configuración de tiempos de expiración
 const ACCESS_TOKEN_TTL = process.env.ACCESS_TOKEN_TTL || '15m';
@@ -39,6 +39,7 @@ function signRefreshToken(user) {
     {
       sub: user.id,
       type: 'refresh',
+      jti: randomUUID(), // garantiza unicidad del token
     },
     process.env.REFRESH_TOKEN_SECRET,
     { expiresIn: REFRESH_TOKEN_TTL }
@@ -46,79 +47,70 @@ function signRefreshToken(user) {
 }
 
 /* ======================================================
-   REGISTRO DE USUARIO (PENDIENTE DE APROBACIÓN)
+   REGISTRO DE USUARIO
+   - Tanto STUDENT como TEACHER quedan pendientes de aprobación
+   - El admin aprueba y asigna el rol definitivo
 ====================================================== */
 
-// -----------------------------------------------------------
-// Registro de usuario
-// -----------------------------------------------------------
 async function registerUser(data) {
-  const {
-    email,
-    password,
-    firstName,
-    lastName,
-    role, // opcional: "TEACHER" o "STUDENT"
-  } = data;
+  const { email, password, firstName, lastName, role, institutionId } = data;
 
-  const existing = await prisma.user.findUnique({
-    where: { email },
-  });
+  // Validar rol — solo STUDENT o TEACHER permitidos en registro público
+  if (!['STUDENT', 'TEACHER'].includes(role)) {
+    const error = new Error('Rol inválido. Solo puedes registrarte como estudiante o docente');
+    error.statusCode = 400;
+    throw error;
+  }
 
+  const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     const error = new Error('El correo ya está registrado');
     error.statusCode = 400;
     throw error;
   }
 
+  // Validar institución
+  if (!institutionId) {
+    const error = new Error('Debes seleccionar una institución');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const institution = await prisma.institution.findUnique({
+    where: { id: institutionId },
+    select: { id: true, isActive: true },
+  });
+  if (!institution || !institution.isActive) {
+    const error = new Error('Institución no encontrada o inactiva');
+    error.statusCode = 400;
+    throw error;
+  }
+
   const passwordHash = await bcrypt.hash(password, 10);
 
-  // Regla clave del sistema
-  const isTeacherRequest = role === 'TEACHER';
-
+  // Ambos roles quedan como STUDENT temporalmente con pendingApproval
+  // El admin aprueba y asigna el rol definitivo (STUDENT o TEACHER)
   const user = await prisma.user.create({
     data: {
       email,
       passwordHash,
       firstName: firstName || null,
       lastName: lastName || null,
-
-      // reglas de negocio
-      role: isTeacherRequest ? 'STUDENT' : 'STUDENT',
-      isActive: isTeacherRequest ? false : true,
-      pendingApproval: isTeacherRequest ? true : false,
-
-      institutionId: null,
+      role: 'STUDENT',       // rol temporal — el admin lo confirma al aprobar
+      isActive: false,       // inactivo hasta aprobación
+      pendingApproval: true, // siempre pendiente al registrarse
+      institutionId,
     },
   });
 
-  // Si está pendiente → NO se generan tokens
-  if (user.pendingApproval) {
-    return {
-      user,
-      accessToken: null,
-      refreshToken: null,
-      pendingApproval: true,
-    };
-  }
-
-  // Usuarios activos normales
-  const accessToken = signAccessToken(user);
-  const refreshToken = signRefreshToken(user);
-
-  await prisma.refreshToken.create({
-    data: {
-      token: refreshToken,
-      userId: user.id,
-      expiresAt: null,
-    },
-  });
-
+  // Guardamos el rol solicitado para que el admin sepa qué aprobó el usuario
+  // Esto se puede leer desde un campo extra o simplemente el admin decide al aprobar
   return {
     user,
-    accessToken,
-    refreshToken,
-    pendingApproval: false,
+    accessToken: null,
+    refreshToken: null,
+    pendingApproval: true,
+    requestedRole: role, // informativo para el frontend
   };
 }
 

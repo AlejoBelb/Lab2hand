@@ -1,6 +1,7 @@
 // server/src/app.js
 // Aplicación Express principal de Lab2hand con middlewares y routers.
 
+// Dependencias / Imports
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -10,6 +11,7 @@ const rateLimit = require('express-rate-limit');
 
 // Routers
 const authRouter = require('./routes/auth.routes');
+const coursesRouter = require('./routes/courses.routes');
 const echoRouter = require('./routes/echo.routes');
 const healthRouter = require('./routes/health.routes');
 const experimentRouter = require('./routes/experiment.routes');
@@ -17,8 +19,12 @@ const meRouter = require('./routes/me.routes');
 const menuRouter = require('./routes/menu.routes');
 const verificationRouter = require('./routes/verification.routes');
 const adminRouter = require('./routes/admin.routes');
+const superadminRouter = require('./routes/superadmin.routes');
 const teacherCoursesRouter = require('./routes/teacherCourses.routes');
-const courseExperimentsRouter = require('./routes/courseExperiments.routes'); // ← NUEVO
+const teacherGuidesRouter = require('./routes/teacherGuides.routes');
+const teacherStudentsRouter = require('./routes/teacherStudents.routes');
+const courseExperimentsRouter = require('./routes/courseExperiments.routes');
+const studentRouter = require('./routes/student.routes');
 
 const app = express();
 
@@ -61,9 +67,14 @@ app.use(
 // =======================
 // RUTAS API
 // =======================
+app.use('/api/superadmin', superadminRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/admin/courses', coursesRouter);
 app.use('/api/teacher', teacherCoursesRouter);
-app.use('/api/courses', courseExperimentsRouter); // ← AQUÍ
+app.use('/api/student', studentRouter);
+app.use('/api/teacher', teacherGuidesRouter);
+app.use('/api/teacher', teacherStudentsRouter);
+app.use('/api/courses', courseExperimentsRouter);
 app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/echo', echoRouter);

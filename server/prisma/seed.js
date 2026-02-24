@@ -1,22 +1,16 @@
-// Seed inicial de Lab2hand
-// - Experimentos y escenarios
-// - Usuario ADMIN del sistema
+// server/prisma/seed.js
 
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
-/* ======================================================
-   CONFIG ADMIN
-====================================================== */
+// ─── CONFIG ───────────────────────────────────────────────────────────────
 
-const ADMIN_EMAIL = 'admin@lab2hand.com';
-const ADMIN_PASSWORD = 'Admin1234!';
+const SUPERADMIN_EMAIL    = process.env.SEED_SUPERADMIN_EMAIL    || 'superadmin@lab2hand.com';
+const SUPERADMIN_PASSWORD = process.env.SEED_SUPERADMIN_PASSWORD || 'SuperAdmin1234!';
 
-/* ======================================================
-   DATA: EXPERIMENTOS
-====================================================== */
+// ─── EXPERIMENTOS ─────────────────────────────────────────────────────────
 
 const experiments = [
   {
@@ -33,21 +27,27 @@ const experiments = [
   },
   {
     slug: 'spring',
-    name: 'Spring',
-    description: 'Resorte: caso estático y movimiento armónico simple (MAS).',
+    name: 'Resorte estático',
+    description: 'Ley de Hooke: deformación de un resorte en reposo.',
     visibility: 'PUBLIC',
     status: 'ACTIVE',
     order: 2,
     scenarios: [
       { slug: 'estatico', name: 'Estático', order: 1 },
-      { slug: 'mas', name: 'Movimiento Armónico Simple (MAS)', order: 2 },
+    ],
+  },
+  {
+    slug: 'mas',
+    name: 'Movimiento Armónico Simple',
+    description: 'Oscilación de un resorte: periodo, frecuencia y amplitud.',
+    visibility: 'PUBLIC',
+    status: 'ACTIVE',
+    order: 3,
+    scenarios: [
+      { slug: 'mas', name: 'MAS', order: 1 },
     ],
   },
 ];
-
-/* ======================================================
-   UPSERT EXPERIMENTOS + ESCENARIOS
-====================================================== */
 
 async function upsertExperiment(exp) {
   const base = await prisma.experiment.upsert({
@@ -69,10 +69,7 @@ async function upsertExperiment(exp) {
     },
   });
 
-  const existing = await prisma.scenario.findMany({
-    where: { experimentId: base.id },
-  });
-
+  const existing = await prisma.scenario.findMany({ where: { experimentId: base.id } });
   const existingMap = new Map(existing.map(s => [s.slug, s]));
 
   for (const s of exp.scenarios) {
@@ -83,66 +80,62 @@ async function upsertExperiment(exp) {
       });
     } else {
       await prisma.scenario.create({
-        data: {
-          experimentId: base.id,
-          slug: s.slug,
-          name: s.name,
-          order: s.order,
-        },
+        data: { experimentId: base.id, slug: s.slug, name: s.name, order: s.order },
       });
     }
   }
+
+  console.log(`  ✅ Experimento: ${exp.name}`);
 }
 
-/* ======================================================
-   UPSERT ADMIN
-====================================================== */
+// ─── SUPERADMIN ───────────────────────────────────────────────────────────
 
-async function upsertAdmin() {
-  const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+async function upsertSuperAdmin() {
+  const passwordHash = await bcrypt.hash(SUPERADMIN_PASSWORD, 10);
 
-  await prisma.user.upsert({
-    where: { email: ADMIN_EMAIL },
+  const user = await prisma.user.upsert({
+    where: { email: SUPERADMIN_EMAIL },
     update: {
-      role: 'ADMIN',
+      role: 'SUPERADMIN',
       isActive: true,
+      institutionId: null,
     },
     create: {
-      email: ADMIN_EMAIL,
+      email: SUPERADMIN_EMAIL,
       passwordHash,
-      firstName: 'Admin',
-      lastName: 'Lab2hand',
-      role: 'ADMIN',
+      firstName: 'Super',
+      lastName: 'Admin',
+      role: 'SUPERADMIN',
       isActive: true,
+      pendingApproval: false,
+      institutionId: null,
     },
   });
 
-  console.log('✅ Admin asegurado:', ADMIN_EMAIL);
+  console.log(`  ✅ Superadmin: ${user.email}`);
 }
 
-/* ======================================================
-   MAIN
-====================================================== */
+// ─── MAIN ─────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log('🌱 Ejecutando seed...');
+  console.log('🌱 Ejecutando seed...\n');
 
+  console.log('📦 Experimentos:');
   for (const exp of experiments) {
     await upsertExperiment(exp);
   }
 
-  await upsertAdmin();
+  console.log('\n👤 Usuarios del sistema:');
+  await upsertSuperAdmin();
 
-  console.log('✅ Seed completado');
+  console.log('\n✅ Seed completado.');
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-    process.exit(0);
-  })
-  .catch(async (e) => {
+  .catch(e => {
     console.error('❌ Error en seed:', e);
-    await prisma.$disconnect();
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
   });
