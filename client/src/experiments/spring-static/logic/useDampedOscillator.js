@@ -132,10 +132,10 @@ export default function useDampedOscillator({
     const dtReal = Math.min(0.05, Math.max(0, now - last));
     accRef.current = now;
 
-    // Sub-pasos fijos ~dt
+    // Sub-pasos fijos con paso reducido para mayor precisión numérica
     let acc = dtReal;
-    const h = dt;
-    const Nmax = 5;
+    const h = dt / 4;
+    const Nmax = 40;
     let n = 0;
     while (acc > 0 && n < Nmax) {
       const stepH = Math.min(h, acc);
@@ -171,9 +171,17 @@ export default function useDampedOscillator({
     };
   }, []);
 
+  const stop = () => {
+    runningRef.current = false;
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    setRunning(false);
+  };
+
   return {
     x: stateX,
     running,
     startImpulse,
+    stop,
   };
 }

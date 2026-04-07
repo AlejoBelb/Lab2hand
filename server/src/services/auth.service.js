@@ -10,6 +10,21 @@ const prisma = require('../config/prisma');
 const ACCESS_TOKEN_TTL = process.env.ACCESS_TOKEN_TTL || '15m';
 const REFRESH_TOKEN_TTL = process.env.REFRESH_TOKEN_TTL || '7d';
 
+// Parsear duración tipo "7d", "15m", "1h" a milisegundos
+function parseTTLtoMs(ttl) {
+  const match = ttl.match(/^(\d+)(s|m|h|d)$/);
+  if (!match) return 7 * 24 * 60 * 60 * 1000; // fallback: 7 días
+  const val = parseInt(match[1], 10);
+  const unit = match[2];
+  switch (unit) {
+    case 's': return val * 1000;
+    case 'm': return val * 60 * 1000;
+    case 'h': return val * 60 * 60 * 1000;
+    case 'd': return val * 24 * 60 * 60 * 1000;
+    default:  return 7 * 24 * 60 * 60 * 1000;
+  }
+}
+
 /* ======================================================
    Helpers JWT
 ====================================================== */
@@ -96,21 +111,20 @@ async function registerUser(data) {
       passwordHash,
       firstName: firstName || null,
       lastName: lastName || null,
-      role: 'STUDENT',       // rol temporal — el admin lo confirma al aprobar
-      isActive: false,       // inactivo hasta aprobación
-      pendingApproval: true, // siempre pendiente al registrarse
+      role: 'STUDENT',        // rol temporal — el admin lo confirma al aprobar
+      requestedRole: role,    // persistir el rol solicitado para que el admin lo vea
+      isActive: false,        // inactivo hasta aprobación
+      pendingApproval: true,  // siempre pendiente al registrarse
       institutionId,
     },
   });
 
-  // Guardamos el rol solicitado para que el admin sepa qué aprobó el usuario
-  // Esto se puede leer desde un campo extra o simplemente el admin decide al aprobar
   return {
     user,
     accessToken: null,
     refreshToken: null,
     pendingApproval: true,
-    requestedRole: role, // informativo para el frontend
+    requestedRole: role,
   };
 }
 
@@ -146,11 +160,14 @@ async function loginUser({ email, password }) {
   const accessToken = signAccessToken(user);
   const refreshToken = signRefreshToken(user);
 
+  // Calcular fecha de expiración real para la BD
+  const refreshTTLms = parseTTLtoMs(REFRESH_TOKEN_TTL);
+
   await prisma.refreshToken.create({
     data: {
       token: refreshToken,
       userId: user.id,
-      expiresAt: null,
+      expiresAt: new Date(Date.now() + refreshTTLms),
     },
   });
 
@@ -175,6 +192,13 @@ async function refreshAccessToken(refreshToken) {
 
   if (!stored || stored.revokedAt) {
     const error = new Error('Refresh token inválido');
+    error.statusCode = 401;
+    throw error;
+  }
+
+  // Verificar expiración en BD además del JWT
+  if (stored.expiresAt && stored.expiresAt < new Date()) {
+    const error = new Error('Refresh token expirado');
     error.statusCode = 401;
     throw error;
   }

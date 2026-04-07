@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom
 import AppHeader from "../shared/components/AppHeader.jsx";
 import AppFooter from "../shared/components/AppFooter.jsx";
 import BreadcrumbsBar from "../shared/components/BreadcrumbsBar.jsx";
-import BackToMenu from "../shared/components/BackToMenu.jsx";
 
 // Páginas públicas / experimentos
 import HomeMenu from "../pages/HomeMenu.jsx";
@@ -15,34 +14,28 @@ import BernoulliPage from "../experiments/bernoulli/pages/BernoulliPage.jsx";
 import SpringStaticWrapper from "../experiments/spring-static/pages/SpringStaticWrapper.jsx";
 import SpringMasWrapper from "../experiments/spring-static/pages/SpringMasWrapper.jsx";
 import LoginPage from "../pages/loginPage.jsx";
+import RegisterPage from "../pages/RegisterPage.jsx";
 
-// Panel Admin institucional
+// Panel Admin
 import AdminLayout from "../pages/admin/AdminLayout.jsx";
 import InstitutionsPage from "../pages/admin/InstitutionsPage.jsx";
 import UsersPage from "../pages/admin/UsersPage.jsx";
 import CoursesPage from "../pages/admin/CoursesPage.jsx";
+import PendingUsersPage from "../pages/admin/PendingUsersPage.jsx";
 
 // Panel Teacher
 import TeacherLayout from "../pages/teacher/TeacherLayout.jsx";
-import GuidesPage from "../pages/teacher/GuidesPage.jsx";
+import TeacherCoursesPage from "../pages/teacher/CoursesPage.jsx";
 import StudentsPage from "../pages/teacher/StudentsPage.jsx";
-
-// Panel Superadmin global
-import SuperAdminLayout from "../pages/superadmin/SuperAdminLayout.jsx";
-import SAInstitutionsPage from "../pages/superadmin/SAInstitutionsPage.jsx";
-import SAUsersPage from "../pages/superadmin/SAUsersPage.jsx";
 
 // Panel Student
 import StudentLayout from "../pages/student/StudentLayout.jsx";
 import StudentCoursesPage from "../pages/student/CoursesPage.jsx";
 
-// Panel Register
-import RegisterPage from "../pages/RegisterPage.jsx";
-
 // Guards
 import { RequireRole } from "../lib/auth/RequireAuth.jsx";
 
-// ── Layouts ────────────────────────────────────────────────────────────────
+// ── Layouts ──────────────────────────────────────────────────────────────────
 
 function BaseLayout() {
   return (
@@ -57,11 +50,11 @@ function BaseLayout() {
   );
 }
 
-function BernoulliWrapper() { return (<><BackToMenu /><BernoulliPage /></>); }
-function SpringWrapper() { return (<><BackToMenu /><SpringStaticWrapper /></>); }
-function SpringMASRoute() { return (<><BackToMenu /><SpringMasWrapper /></>); }
+function BernoulliWrapper() { return (<BernoulliPage />); }
+function SpringWrapper()    { return (<SpringStaticWrapper />); }
+function SpringMASRoute()   { return (<SpringMasWrapper />); }
 
-// ── Router ─────────────────────────────────────────────────────────────────
+// ── Router ────────────────────────────────────────────────────────────────────
 
 export default function RouterApp() {
   return (
@@ -70,16 +63,16 @@ export default function RouterApp() {
 
         {/* ── Rutas públicas ── */}
         <Route element={<BaseLayout />}>
-          <Route path="/" element={<HomeMenu />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/experiments/bernoulli" element={<BernoulliWrapper />} />
-          <Route path="/experiments/spring" element={<SpringWrapper />} />
-          <Route path="/experiments/spring/mas" element={<SpringMASRoute />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/"                           element={<HomeMenu />} />
+          <Route path="/login"                      element={<LoginPage />} />
+          <Route path="/register"                   element={<RegisterPage />} />
+          <Route path="/experiments/bernoulli"      element={<BernoulliWrapper />} />
+          <Route path="/experiments/spring"         element={<SpringWrapper />} />
+          <Route path="/experiments/spring/mas"     element={<SpringMASRoute />} />
+          <Route path="*"                           element={<Navigate to="/" replace />} />
         </Route>
 
-        {/* ── Panel Admin institucional ── */}
+        {/* ── Panel Admin ── */}
         <Route
           path="/admin"
           element={
@@ -88,10 +81,11 @@ export default function RouterApp() {
             </RequireRole>
           }
         >
-          <Route index element={<Navigate to="/admin/institutions" replace />} />
-          <Route path="institutions" element={<InstitutionsPage />} />
-          <Route path="users" element={<UsersPage />} />
-          <Route path="courses" element={<CoursesPage />} />
+          <Route index                              element={<Navigate to="/admin/pending" replace />} />
+          <Route path="pending"                     element={<PendingUsersPage />} />
+          <Route path="institutions"                element={<InstitutionsPage />} />
+          <Route path="users"                       element={<UsersPage />} />
+          <Route path="courses"                     element={<CoursesPage />} />
         </Route>
 
         {/* ── Panel Teacher ── */}
@@ -103,9 +97,9 @@ export default function RouterApp() {
             </RequireRole>
           }
         >
-          <Route index element={<Navigate to="/teacher/guides" replace />} />
-          <Route path="guides" element={<GuidesPage />} />
-          <Route path="students" element={<StudentsPage />} />
+          <Route index                              element={<Navigate to="/teacher/courses" replace />} />
+          <Route path="courses"                     element={<TeacherCoursesPage />} />
+          <Route path="students"                    element={<StudentsPage />} />
         </Route>
 
         {/* ── Panel Student ── */}
@@ -117,22 +111,8 @@ export default function RouterApp() {
             </RequireRole>
           }
         >
-          <Route index element={<Navigate to="/student/courses" replace />} />
-          <Route path="courses" element={<StudentCoursesPage />} />
-        </Route>
-
-        {/* ── Panel Superadmin global ── */}
-        <Route
-          path="/superadmin"
-          element={
-            <RequireRole roles={["SUPERADMIN"]} redirectTo="/login">
-              <SuperAdminLayout />
-            </RequireRole>
-          }
-        >
-          <Route index element={<Navigate to="/superadmin/institutions" replace />} />
-          <Route path="institutions" element={<SAInstitutionsPage />} />
-          <Route path="users" element={<SAUsersPage />} />
+          <Route index                              element={<Navigate to="/student/courses" replace />} />
+          <Route path="courses"                     element={<StudentCoursesPage />} />
         </Route>
 
       </Routes>

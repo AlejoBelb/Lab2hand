@@ -1,0 +1,389 @@
+/* client/src/shared/styles/ui.css */
+
+/* ═══════════════════════════════════════════════════════════
+   Lab2Hand Design System — Componentes reutilizables
+   Importar en main.jsx: import '../shared/styles/ui.css'
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── CARD ─────────────────────────────────────────────────── */
+
+.l2h-card {
+  background: rgba(13, 20, 33, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.l2h-card:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.l2h-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 12px;
+}
+.l2h-card-header-text h2,
+.l2h-card-header-text h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin: 0;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.l2h-card-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.l2h-card-body {
+  padding: 20px;
+}
+
+/* ── BUTTON ───────────────────────────────────────────────── */
+
+.l2h-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.l2h-btn:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, 0.5);
+  outline-offset: 2px;
+}
+.l2h-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Sizes */
+.l2h-btn-sm {
+  padding: 5px 12px;
+  font-size: 12px;
+  border-radius: 7px;
+}
+.l2h-btn-md {
+  padding: 9px 16px;
+  font-size: 13.5px;
+  border-radius: 9px;
+}
+.l2h-btn-lg {
+  padding: 13px 24px;
+  font-size: 15px;
+  border-radius: 11px;
+}
+
+/* Variant: primary */
+.l2h-btn-primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.3);
+}
+.l2h-btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+.l2h-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+/* Variant: ghost */
+.l2h-btn-ghost {
+  background: rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+  border-color: rgba(255, 255, 255, 0.09);
+}
+.l2h-btn-ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.09);
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* Variant: danger */
+.l2h-btn-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+.l2h-btn-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Variant: success */
+.l2h-btn-success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+.l2h-btn-success:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+/* Button icon */
+.l2h-btn-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ── ALERT ────────────────────────────────────────────────── */
+
+.l2h-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  border: 1px solid;
+}
+.l2h-alert-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+}
+.l2h-alert-text {
+  flex: 1;
+}
+
+/* Info */
+.l2h-alert-info {
+  background: rgba(59, 130, 246, 0.06);
+  border-color: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+}
+/* Success */
+.l2h-alert-success {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+}
+/* Warning */
+.l2h-alert-warning {
+  background: rgba(245, 158, 11, 0.06);
+  border-color: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+}
+/* Error */
+.l2h-alert-error {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  animation: l2hShake 0.35s ease;
+}
+@keyframes l2hShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+/* ── INPUT ────────────────────────────────────────────────── */
+
+.l2h-field {
+  margin-bottom: 18px;
+}
+
+.l2h-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.l2h-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.l2h-input:hover:not(:disabled):not(:focus) {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+}
+.l2h-input:focus {
+  border-color: rgba(59, 130, 246, 0.6);
+  background: rgba(59, 130, 246, 0.04);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.l2h-input::placeholder {
+  color: #475569;
+}
+.l2h-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Error state */
+.l2h-field-error .l2h-input,
+.l2h-field-error .l2h-select {
+  border-color: rgba(248, 113, 113, 0.5);
+}
+.l2h-field-error .l2h-input:focus,
+.l2h-field-error .l2h-select:focus {
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15);
+}
+
+/* Helper / error message */
+.l2h-field-msg {
+  font-size: 12px;
+  color: #475569;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+.l2h-field-msg-error {
+  color: #f87171;
+}
+
+/* ── SELECT ───────────────────────────────────────────────── */
+
+.l2h-select {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px 40px 12px 16px;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.l2h-select:hover:not(:disabled):not(:focus) {
+  border-color: rgba(255, 255, 255, 0.16);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.l2h-select:focus {
+  border-color: rgba(59, 130, 246, 0.6);
+  background-color: rgba(59, 130, 246, 0.04);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.l2h-select option {
+  background: #0f1520;
+  color: #e2e8f0;
+  padding: 10px;
+}
+.l2h-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── EMPTY STATE ──────────────────────────────────────────── */
+
+.l2h-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  text-align: center;
+}
+.l2h-empty-icon {
+  font-size: 2rem;
+  margin-bottom: 12px;
+  opacity: 0.7;
+}
+.l2h-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+.l2h-empty-desc {
+  font-size: 13px;
+  color: #475569;
+  max-width: 320px;
+  line-height: 1.5;
+}
+.l2h-empty-action {
+  margin-top: 16px;
+}
+
+/* ── LOADING STATE ────────────────────────────────────────── */
+
+.l2h-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  gap: 12px;
+}
+.l2h-loading-text {
+  font-size: 13px;
+  color: #475569;
+}
+
+/* ── SPINNER ──────────────────────────────────────────────── */
+
+.l2h-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: l2hSpin 0.7s linear infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.l2h-spinner-md {
+  width: 24px;
+  height: 24px;
+  border-width: 2.5px;
+}
+.l2h-spinner-lg {
+  width: 32px;
+  height: 32px;
+  border-width: 3px;
+}
+@keyframes l2hSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── FOCUS VISIBLE GLOBAL ─────────────────────────────────── */
+
+*:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, 0.5);
+  outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users */
+*:focus:not(:focus-visible) {
+  outline: none;
+}

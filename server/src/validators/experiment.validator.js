@@ -1,4 +1,4 @@
-Ôªø// server/src/validators/experiment.validator.js
+// server/src/validators/experiment.validator.js
 // Validadores para experimentos usando express-validator
 const { checkSchema } = require('express-validator');
 
@@ -6,45 +6,45 @@ const ExperimentStatus = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
 const Visibility = ['PRIVATE', 'UNLISTED', 'PUBLIC'];
 const Sortable = ['createdAt', 'updatedAt', 'title', 'status', 'visibility'];
 
-// Validaci√≥n para listar con filtros y paginaci√≥n
+// ValidaciÛn para listar con filtros y paginaciÛn
 const listExperimentsValidator = checkSchema({
   page: {
     in: ['query'],
     optional: true,
     isInt: { options: { min: 1 } },
     toInt: true,
-    errorMessage: 'El par√°metro page debe ser un entero >= 1',
+    errorMessage: 'El par·metro page debe ser un entero >= 1',
   },
   pageSize: {
     in: ['query'],
     optional: true,
     isInt: { options: { min: 1, max: 100 } },
     toInt: true,
-    errorMessage: 'El par√°metro pageSize debe ser un entero entre 1 y 100',
+    errorMessage: 'El par·metro pageSize debe ser un entero entre 1 y 100',
   },
   sort: {
     in: ['query'],
     optional: true,
     isIn: { options: [Sortable] },
-    errorMessage: `El par√°metro sort debe ser uno de: ${Sortable.join(', ')}`,
+    errorMessage: `El par·metro sort debe ser uno de: ${Sortable.join(', ')}`,
   },
   order: {
     in: ['query'],
     optional: true,
     isIn: { options: [['asc', 'desc']] },
-    errorMessage: 'El par√°metro order debe ser "asc" o "desc"',
+    errorMessage: 'El par·metro order debe ser "asc" o "desc"',
   },
   status: {
     in: ['query'],
     optional: true,
     isIn: { options: [ExperimentStatus] },
-    errorMessage: `El par√°metro status debe ser uno de: ${ExperimentStatus.join(', ')}`,
+    errorMessage: `El par·metro status debe ser uno de: ${ExperimentStatus.join(', ')}`,
   },
   visibility: {
     in: ['query'],
     optional: true,
     isIn: { options: [Visibility] },
-    errorMessage: `El par√°metro visibility debe ser uno de: ${Visibility.join(', ')}`,
+    errorMessage: `El par·metro visibility debe ser uno de: ${Visibility.join(', ')}`,
   },
   search: {
     in: ['query'],
@@ -53,22 +53,22 @@ const listExperimentsValidator = checkSchema({
     trim: true,
     escape: true,
     isLength: { options: { min: 2, max: 100 } },
-    errorMessage: 'El par√°metro search debe tener entre 2 y 100 caracteres',
+    errorMessage: 'El par·metro search debe tener entre 2 y 100 caracteres',
   },
 });
 
-// Validaci√≥n de par√°metro :id (cuid)
+// ValidaciÛn de par·metro :id (cuid)
 const idParamValidator = checkSchema({
   id: {
     in: ['params'],
     isString: true,
     trim: true,
     isLength: { options: { min: 10, max: 50 } },
-    errorMessage: 'El par√°metro id es inv√°lido',
+    errorMessage: 'El par·metro id es inv·lido',
   },
 });
 
-// Validaci√≥n de par√°metro :slug
+// ValidaciÛn de par·metro :slug
 const slugParamValidator = checkSchema({
   slug: {
     in: ['params'],
@@ -76,11 +76,11 @@ const slugParamValidator = checkSchema({
     trim: true,
     matches: { options: [/^[a-z0-9]+(?:-[a-z0-9]+)*$/] },
     isLength: { options: { min: 3, max: 80 } },
-    errorMessage: 'El par√°metro slug es inv√°lido. Use min√∫sculas, n√∫meros y guiones medios',
+    errorMessage: 'El par·metro slug es inv·lido. Use min˙sculas, n˙meros y guiones medios',
   },
 });
 
-// Validaci√≥n para crear experimentos
+// ValidaciÛn para crear experimentos
 const createExperimentValidator = checkSchema({
   title: {
     in: ['body'],
@@ -98,7 +98,7 @@ const createExperimentValidator = checkSchema({
     toLowerCase: true,
     matches: { options: [/^[a-z0-9]+(?:-[a-z0-9]+)*$/] },
     isLength: { options: { min: 3, max: 80 } },
-    errorMessage: 'El campo slug es obligatorio, min√∫sculas/n√∫meros con guiones, 3-80 caracteres',
+    errorMessage: 'El campo slug es obligatorio, min˙sculas/n˙meros con guiones, 3-80 caracteres',
   },
   description: {
     in: ['body'],
@@ -106,7 +106,7 @@ const createExperimentValidator = checkSchema({
     isString: true,
     trim: true,
     isLength: { options: { min: 0, max: 2000 } },
-    errorMessage: 'El campo description debe ser texto de m√°ximo 2000 caracteres',
+    errorMessage: 'El campo description debe ser texto de m·ximo 2000 caracteres',
   },
   status: {
     in: ['body'],
@@ -122,7 +122,7 @@ const createExperimentValidator = checkSchema({
   },
 });
 
-// Validaci√≥n para actualizar experimentos
+// ValidaciÛn para actualizar experimentos
 const updateExperimentValidator = checkSchema({
   title: {
     in: ['body'],
@@ -140,7 +140,7 @@ const updateExperimentValidator = checkSchema({
     toLowerCase: true,
     matches: { options: [/^[a-z0-9]+(?:-[a-z0-9]+)*$/] },
     isLength: { options: { min: 3, max: 80 } },
-    errorMessage: 'El campo slug debe usar min√∫sculas/n√∫meros con guiones y 3-80 caracteres',
+    errorMessage: 'El campo slug debe usar min˙sculas/n˙meros con guiones y 3-80 caracteres',
   },
   description: {
     in: ['body'],
@@ -148,7 +148,7 @@ const updateExperimentValidator = checkSchema({
     isString: true,
     trim: true,
     isLength: { options: { min: 0, max: 2000 } },
-    errorMessage: 'El campo description debe ser texto de m√°ximo 2000 caracteres',
+    errorMessage: 'El campo description debe ser texto de m·ximo 2000 caracteres',
   },
   status: {
     in: ['body'],

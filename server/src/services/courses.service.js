@@ -12,9 +12,9 @@ function parsePagination({ page = 1, pageSize = 20 } = {}) {
   return { safePage, safeSize };
 }
 
-async function assertCourseInInstitution(courseId, institutionId) {
-  const course = await prisma.course.findFirst({
-    where: { id: courseId, institutionId },
+async function assertCourseExists(courseId) {
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
     select: { id: true },
   });
   if (!course) {
@@ -26,7 +26,9 @@ async function assertCourseInInstitution(courseId, institutionId) {
 }
 
 /* ======================================================
-   LISTAR CURSOS DE LA INSTITUCIÓN
+   LISTAR CURSOS
+   - institutionId opcional: si se pasa filtra por institución,
+     si no se pasa devuelve todos (admin global)
 ====================================================== */
 
 async function listCourses({
@@ -43,11 +45,12 @@ async function listCourses({
   const allowedSort = new Set(['createdAt', 'name', 'academicYear', 'status']);
   const safeSort = allowedSort.has(sort) ? sort : 'createdAt';
 
-  const where = { institutionId };
+  const where = {};
+  if (institutionId) where.institutionId = institutionId;
   if (status) where.status = status;
   if (search?.trim()) {
     where.OR = [
-      { name: { contains: search.trim(), mode: 'insensitive' } },
+      { name:  { contains: search.trim(), mode: 'insensitive' } },
       { grade: { contains: search.trim(), mode: 'insensitive' } },
       { group: { contains: search.trim(), mode: 'insensitive' } },
     ];
@@ -70,6 +73,7 @@ async function listCourses({
         startsAt: true,
         endsAt: true,
         createdAt: true,
+        institution: { select: { id: true, name: true } },
         _count: {
           select: {
             teachers: true,
@@ -95,9 +99,9 @@ async function listCourses({
    OBTENER CURSO POR ID
 ====================================================== */
 
-async function getCourseById(courseId, institutionId) {
-  const course = await prisma.course.findFirst({
-    where: { id: courseId, institutionId },
+async function getCourseById(courseId) {
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
     select: {
       id: true,
       name: true,
@@ -109,17 +113,13 @@ async function getCourseById(courseId, institutionId) {
       endsAt: true,
       createdAt: true,
       updatedAt: true,
+      institution: { select: { id: true, name: true } },
       teachers: {
         select: {
           role: true,
           assignedAt: true,
           teacher: {
-            select: {
-              id: true,
-              email: true,
-              firstName: true,
-              lastName: true,
-            },
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
         },
       },
@@ -127,24 +127,13 @@ async function getCourseById(courseId, institutionId) {
         select: {
           enrolledAt: true,
           student: {
-            select: {
-              id: true,
-              email: true,
-              firstName: true,
-              lastName: true,
-            },
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
         },
       },
       experiments: {
         select: {
-          experiment: {
-            select: {
-              id: true,
-              slug: true,
-              name: true,
-            },
-          },
+          experiment: { select: { id: true, slug: true, name: true } },
         },
       },
       _count: {
@@ -193,7 +182,7 @@ async function createCourse({
   }
 
   const start = new Date(startsAt);
-  const end = new Date(endsAt);
+  const end   = new Date(endsAt);
 
   if (isNaN(start.getTime()) || isNaN(end.getTime())) {
     const err = new Error('Fechas inválidas');
@@ -219,15 +208,8 @@ async function createCourse({
       institutionId,
     },
     select: {
-      id: true,
-      name: true,
-      grade: true,
-      group: true,
-      academicYear: true,
-      status: true,
-      startsAt: true,
-      endsAt: true,
-      createdAt: true,
+      id: true, name: true, grade: true, group: true,
+      academicYear: true, status: true, startsAt: true, endsAt: true, createdAt: true,
     },
   });
 }
@@ -236,22 +218,17 @@ async function createCourse({
    ACTUALIZAR CURSO
 ====================================================== */
 
-async function updateCourse(courseId, institutionId, {
-  name,
-  grade,
-  group,
-  academicYear,
-  startsAt,
-  endsAt,
-  status,
+async function updateCourse(courseId, {
+  name, grade, group, academicYear, startsAt, endsAt, status,
 }) {
-  await assertCourseInInstitution(courseId, institutionId);
+  await assertCourseExists(courseId);
 
   const data = {};
-  if (typeof name === 'string' && name.trim()) data.name = name.trim();
-  if (typeof grade === 'string' && grade.trim()) data.grade = grade.trim();
-  if (typeof group === 'string' && group.trim()) data.group = group.trim();
+  if (typeof name === 'string' && name.trim())         data.name = name.trim();
+  if (typeof grade === 'string' && grade.trim())       data.grade = grade.trim();
+  if (typeof group === 'string' && group.trim())       data.group = group.trim();
   if (typeof academicYear === 'string' && academicYear.trim()) data.academicYear = academicYear.trim();
+
   if (status) {
     const validStatuses = ['ACTIVE', 'EXPIRED', 'ARCHIVED'];
     if (!validStatuses.includes(status)) {
@@ -273,10 +250,7 @@ async function updateCourse(courseId, institutionId, {
     data.endsAt = d;
   }
 
-  // Validar coherencia de fechas si ambas están presentes
-  const finalStart = data.startsAt;
-  const finalEnd = data.endsAt;
-  if (finalStart && finalEnd && finalEnd <= finalStart) {
+  if (data.startsAt && data.endsAt && data.endsAt <= data.startsAt) {
     const err = new Error('endsAt debe ser posterior a startsAt');
     err.statusCode = 400;
     throw err;
@@ -286,25 +260,18 @@ async function updateCourse(courseId, institutionId, {
     where: { id: courseId },
     data,
     select: {
-      id: true,
-      name: true,
-      grade: true,
-      group: true,
-      academicYear: true,
-      status: true,
-      startsAt: true,
-      endsAt: true,
-      updatedAt: true,
+      id: true, name: true, grade: true, group: true,
+      academicYear: true, status: true, startsAt: true, endsAt: true, updatedAt: true,
     },
   });
 }
 
 /* ======================================================
-   MEMBRESÍAS — DOCENTES
+   MEMBRESÍAS – DOCENTES
 ====================================================== */
 
-async function addTeacher(courseId, institutionId, { teacherId, role = 'OWNER' }) {
-  await assertCourseInInstitution(courseId, institutionId);
+async function addTeacher(courseId, { teacherId, role = 'OWNER' }) {
+  await assertCourseExists(courseId);
 
   const validRoles = ['OWNER', 'EDITOR', 'VIEWER'];
   if (!validRoles.includes(role)) {
@@ -313,19 +280,16 @@ async function addTeacher(courseId, institutionId, { teacherId, role = 'OWNER' }
     throw err;
   }
 
-  // Verificar que el docente existe y pertenece a la institución
   const teacher = await prisma.user.findFirst({
-    where: { id: teacherId, institutionId, role: 'TEACHER' },
+    where: { id: teacherId, role: 'TEACHER' },
     select: { id: true },
   });
-
   if (!teacher) {
-    const err = new Error('Docente no encontrado en esta institución');
+    const err = new Error('Docente no encontrado');
     err.statusCode = 404;
     throw err;
   }
 
-  // Upsert: si ya existe actualiza el rol
   return prisma.courseTeacher.upsert({
     where: { courseId_teacherId: { courseId, teacherId } },
     update: { role },
@@ -333,20 +297,17 @@ async function addTeacher(courseId, institutionId, { teacherId, role = 'OWNER' }
     select: {
       role: true,
       assignedAt: true,
-      teacher: {
-        select: { id: true, email: true, firstName: true, lastName: true },
-      },
+      teacher: { select: { id: true, email: true, firstName: true, lastName: true } },
     },
   });
 }
 
-async function removeTeacher(courseId, institutionId, teacherId) {
-  await assertCourseInInstitution(courseId, institutionId);
+async function removeTeacher(courseId, teacherId) {
+  await assertCourseExists(courseId);
 
   const link = await prisma.courseTeacher.findUnique({
     where: { courseId_teacherId: { courseId, teacherId } },
   });
-
   if (!link) {
     const err = new Error('El docente no está asignado a este curso');
     err.statusCode = 404;
@@ -359,19 +320,18 @@ async function removeTeacher(courseId, institutionId, teacherId) {
 }
 
 /* ======================================================
-   MEMBRESÍAS — ESTUDIANTES
+   MEMBRESÍAS – ESTUDIANTES
 ====================================================== */
 
-async function addStudent(courseId, institutionId, { studentId }) {
-  await assertCourseInInstitution(courseId, institutionId);
+async function addStudent(courseId, { studentId }) {
+  await assertCourseExists(courseId);
 
   const student = await prisma.user.findFirst({
-    where: { id: studentId, institutionId, role: 'STUDENT' },
+    where: { id: studentId, role: 'STUDENT' },
     select: { id: true },
   });
-
   if (!student) {
-    const err = new Error('Estudiante no encontrado en esta institución');
+    const err = new Error('Estudiante no encontrado');
     err.statusCode = 404;
     throw err;
   }
@@ -382,20 +342,17 @@ async function addStudent(courseId, institutionId, { studentId }) {
     create: { courseId, studentId },
     select: {
       enrolledAt: true,
-      student: {
-        select: { id: true, email: true, firstName: true, lastName: true },
-      },
+      student: { select: { id: true, email: true, firstName: true, lastName: true } },
     },
   });
 }
 
-async function removeStudent(courseId, institutionId, studentId) {
-  await assertCourseInInstitution(courseId, institutionId);
+async function removeStudent(courseId, studentId) {
+  await assertCourseExists(courseId);
 
   const link = await prisma.courseStudent.findUnique({
     where: { courseId_studentId: { courseId, studentId } },
   });
-
   if (!link) {
     const err = new Error('El estudiante no está inscrito en este curso');
     err.statusCode = 404;
@@ -411,14 +368,13 @@ async function removeStudent(courseId, institutionId, studentId) {
    EXPERIMENTOS DEL CURSO
 ====================================================== */
 
-async function addExperiment(courseId, institutionId, experimentId) {
-  await assertCourseInInstitution(courseId, institutionId);
+async function addExperiment(courseId, experimentId) {
+  await assertCourseExists(courseId);
 
   const exp = await prisma.experiment.findUnique({
     where: { id: experimentId },
     select: { id: true },
   });
-
   if (!exp) {
     const err = new Error('Experimento no encontrado');
     err.statusCode = 404;
@@ -435,13 +391,12 @@ async function addExperiment(courseId, institutionId, experimentId) {
   });
 }
 
-async function removeExperiment(courseId, institutionId, experimentId) {
-  await assertCourseInInstitution(courseId, institutionId);
+async function removeExperiment(courseId, experimentId) {
+  await assertCourseExists(courseId);
 
   const link = await prisma.courseExperiment.findUnique({
     where: { courseId_experimentId: { courseId, experimentId } },
   });
-
   if (!link) {
     const err = new Error('El experimento no está asignado a este curso');
     err.statusCode = 404;

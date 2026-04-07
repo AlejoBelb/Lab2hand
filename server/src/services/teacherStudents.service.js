@@ -3,36 +3,20 @@
 const prisma = require('../config/prisma');
 
 /* ======================================================
-   VERIFICAR QUE EL DOCENTE PERTENECE A LA INSTITUCIÓN
-====================================================== */
-
-async function getTeacherInstitution(teacherId) {
-  const teacher = await prisma.user.findUnique({
-    where: { id: teacherId },
-    select: { institutionId: true },
-  });
-
-  if (!teacher?.institutionId) {
-    const err = new Error('El docente no pertenece a ninguna institución');
-    err.status = 403;
-    throw err;
-  }
-
-  return teacher.institutionId;
-}
-
-/* ======================================================
-   LISTAR ESTUDIANTES DE LA INSTITUCIÓN
+   LISTAR ESTUDIANTES
+   - Muestra estudiantes de los cursos asignados al docente
    - Con filtro de estado: pending | approved | all
 ====================================================== */
 
 async function listStudents({ teacherId, status = 'all', search } = {}) {
-  const institutionId = await getTeacherInstitution(teacherId);
+  // Obtener los cursos del docente
+  const teacherCourses = await prisma.courseTeacher.findMany({
+    where: { teacherId },
+    select: { courseId: true },
+  });
+  const courseIds = teacherCourses.map(tc => tc.courseId);
 
-  const where = {
-    institutionId,
-    role: 'STUDENT',
-  };
+  const where = { role: 'STUDENT' };
 
   if (status === 'pending') {
     where.pendingApproval = true;
@@ -44,9 +28,9 @@ async function listStudents({ teacherId, status = 'all', search } = {}) {
 
   if (search?.trim()) {
     where.OR = [
-      { email: { contains: search.trim(), mode: 'insensitive' } },
+      { email:     { contains: search.trim(), mode: 'insensitive' } },
       { firstName: { contains: search.trim(), mode: 'insensitive' } },
-      { lastName: { contains: search.trim(), mode: 'insensitive' } },
+      { lastName:  { contains: search.trim(), mode: 'insensitive' } },
     ];
   }
 
@@ -60,9 +44,9 @@ async function listStudents({ teacherId, status = 'all', search } = {}) {
       isActive: true,
       pendingApproval: true,
       createdAt: true,
-      // Cursos en los que ya está inscrito dentro de esta institución
+      // Cursos en los que ya está inscrito (de los cursos del docente)
       enrolledCourses: {
-        where: { course: { institutionId } },
+        where: { courseId: { in: courseIds } },
         select: {
           course: { select: { id: true, name: true, grade: true, group: true } },
         },
@@ -74,19 +58,16 @@ async function listStudents({ teacherId, status = 'all', search } = {}) {
 
 /* ======================================================
    APROBAR ESTUDIANTE
-   - Lo activa y quita pendingApproval
 ====================================================== */
 
 async function approveStudent({ teacherId, studentId }) {
-  const institutionId = await getTeacherInstitution(teacherId);
-
   const student = await prisma.user.findFirst({
-    where: { id: studentId, institutionId, role: 'STUDENT' },
+    where: { id: studentId, role: 'STUDENT' },
     select: { id: true, isActive: true, pendingApproval: true },
   });
 
   if (!student) {
-    const err = new Error('Estudiante no encontrado en esta institución');
+    const err = new Error('Estudiante no encontrado');
     err.status = 404;
     throw err;
   }
@@ -109,15 +90,13 @@ async function approveStudent({ teacherId, studentId }) {
 ====================================================== */
 
 async function rejectStudent({ teacherId, studentId }) {
-  const institutionId = await getTeacherInstitution(teacherId);
-
   const student = await prisma.user.findFirst({
-    where: { id: studentId, institutionId, role: 'STUDENT' },
+    where: { id: studentId, role: 'STUDENT' },
     select: { id: true },
   });
 
   if (!student) {
-    const err = new Error('Estudiante no encontrado en esta institución');
+    const err = new Error('Estudiante no encontrado');
     err.status = 404;
     throw err;
   }
@@ -134,9 +113,7 @@ async function rejectStudent({ teacherId, studentId }) {
 ====================================================== */
 
 async function enrollStudentInCourse({ teacherId, studentId, courseId }) {
-  const institutionId = await getTeacherInstitution(teacherId);
-
-  // Verificar que el docente pertenece al curso
+  // Verificar que el docente está asignado al curso
   const courseLink = await prisma.courseTeacher.findUnique({
     where: { courseId_teacherId: { courseId, teacherId } },
     select: { courseId: true },
@@ -148,9 +125,9 @@ async function enrollStudentInCourse({ teacherId, studentId, courseId }) {
     throw err;
   }
 
-  // Verificar que el estudiante está aprobado y en la misma institución
+  // Verificar que el estudiante existe y está activo
   const student = await prisma.user.findFirst({
-    where: { id: studentId, institutionId, role: 'STUDENT', isActive: true },
+    where: { id: studentId, role: 'STUDENT', isActive: true },
     select: { id: true },
   });
 
@@ -167,7 +144,7 @@ async function enrollStudentInCourse({ teacherId, studentId, courseId }) {
     select: {
       enrolledAt: true,
       student: { select: { id: true, firstName: true, lastName: true, email: true } },
-      course: { select: { id: true, name: true } },
+      course:   { select: { id: true, name: true } },
     },
   });
 }
@@ -177,8 +154,7 @@ async function enrollStudentInCourse({ teacherId, studentId, courseId }) {
 ====================================================== */
 
 async function unenrollStudentFromCourse({ teacherId, studentId, courseId }) {
-  const institutionId = await getTeacherInstitution(teacherId);
-
+  // Verificar que el docente está asignado al curso
   const courseLink = await prisma.courseTeacher.findUnique({
     where: { courseId_teacherId: { courseId, teacherId } },
     select: { courseId: true },

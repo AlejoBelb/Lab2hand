@@ -14,7 +14,6 @@ const server = http.createServer(app);
 server.on('listening', () => {
   const addr = server.address();
   const bind = typeof addr === 'string' ? addr : `${addr.address}:${addr.port}`;
-  console.log(`[lab2hand-api] Listening on ${bind}`);
 });
 
 server.on('error', (error) => {
@@ -28,12 +27,10 @@ server.on('error', (error) => {
 
 // Señales de terminación
 process.on('SIGINT', () => {
-  console.log('[lab2hand-api] SIGINT received, shutting down gracefully...');
   server.close(() => process.exit(0));
 });
 
 process.on('SIGTERM', () => {
-  console.log('[lab2hand-api] SIGTERM received, shutting down gracefully...');
   server.close(() => process.exit(0));
 });
 

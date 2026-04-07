@@ -5,12 +5,14 @@ const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
-// ─── CONFIG ───────────────────────────────────────────────────────────────
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
 
-const SUPERADMIN_EMAIL    = process.env.SEED_SUPERADMIN_EMAIL    || 'superadmin@lab2hand.com';
-const SUPERADMIN_PASSWORD = process.env.SEED_SUPERADMIN_PASSWORD || 'SuperAdmin1234!';
+const ADMIN_EMAIL    = process.env.SEED_ADMIN_EMAIL    || 'admin@lab2hand.com';
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || 'Admin1234!';
 
-// ─── EXPERIMENTOS ─────────────────────────────────────────────────────────
+// ─── EXPERIMENTOS ─────────────────────────────────────────────────────────────
+// fileUrl: ruta pública al PDF dentro del servidor (server/public/guides/)
+// Coloca los PDFs en server/public/guides/ con los nombres indicados.
 
 const experiments = [
   {
@@ -20,10 +22,8 @@ const experiments = [
     visibility: 'PUBLIC',
     status: 'ACTIVE',
     order: 1,
-    scenarios: [
-      { slug: 'sin_tapa', name: 'Sin tapa', order: 1 },
-      { slug: 'con_tapa', name: 'Con tapa', order: 2 },
-    ],
+    guideTitle: 'Guía de laboratorio — Bernoulli',
+    guideFile: '/guides/guia-bernoulli.pdf',
   },
   {
     slug: 'spring',
@@ -32,9 +32,8 @@ const experiments = [
     visibility: 'PUBLIC',
     status: 'ACTIVE',
     order: 2,
-    scenarios: [
-      { slug: 'estatico', name: 'Estático', order: 1 },
-    ],
+    guideTitle: 'Guía de laboratorio — Resorte estático',
+    guideFile: '/guides/guia-resorte-estatico.pdf',
   },
   {
     slug: 'mas',
@@ -43,11 +42,12 @@ const experiments = [
     visibility: 'PUBLIC',
     status: 'ACTIVE',
     order: 3,
-    scenarios: [
-      { slug: 'mas', name: 'MAS', order: 1 },
-    ],
+    guideTitle: 'Guía de laboratorio — MAS',
+    guideFile: '/guides/guia-mas.pdf',
   },
 ];
+
+// ─── UPSERT EXPERIMENTO + GUÍA ────────────────────────────────────────────────
 
 async function upsertExperiment(exp) {
   const base = await prisma.experiment.upsert({
@@ -69,64 +69,85 @@ async function upsertExperiment(exp) {
     },
   });
 
-  const existing = await prisma.scenario.findMany({ where: { experimentId: base.id } });
-  const existingMap = new Map(existing.map(s => [s.slug, s]));
+  // Upsert guía del experimento (una por experimento, sin curso ni docente)
+  const existingGuide = await prisma.guide.findFirst({
+    where: { experimentId: base.id, courseId: null },
+  });
 
-  for (const s of exp.scenarios) {
-    if (existingMap.has(s.slug)) {
-      await prisma.scenario.update({
-        where: { id: existingMap.get(s.slug).id },
-        data: { name: s.name, order: s.order },
-      });
-    } else {
-      await prisma.scenario.create({
-        data: { experimentId: base.id, slug: s.slug, name: s.name, order: s.order },
-      });
-    }
+  if (!existingGuide) {
+    // Necesitamos un createdById válido — usamos el admin del sistema
+    // Se resuelve después de crear el admin; por eso se llama desde main()
+    base._guideData = {
+      title: exp.guideTitle,
+      fileUrl: exp.guideFile,
+      experimentId: base.id,
+      status: 'PUBLISHED',
+    };
   }
 
   console.log(`  ✅ Experimento: ${exp.name}`);
+  return base;
 }
 
-// ─── SUPERADMIN ───────────────────────────────────────────────────────────
+// ─── ADMIN ────────────────────────────────────────────────────────────────────
 
-async function upsertSuperAdmin() {
-  const passwordHash = await bcrypt.hash(SUPERADMIN_PASSWORD, 10);
+async function upsertAdmin() {
+  const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
 
   const user = await prisma.user.upsert({
-    where: { email: SUPERADMIN_EMAIL },
+    where: { email: ADMIN_EMAIL },
     update: {
-      role: 'SUPERADMIN',
+      role: 'ADMIN',
       isActive: true,
+      pendingApproval: false,
       institutionId: null,
     },
     create: {
-      email: SUPERADMIN_EMAIL,
+      email: ADMIN_EMAIL,
       passwordHash,
-      firstName: 'Super',
-      lastName: 'Admin',
-      role: 'SUPERADMIN',
+      firstName: 'Admin',
+      lastName: 'Lab2Hand',
+      role: 'ADMIN',
       isActive: true,
       pendingApproval: false,
       institutionId: null,
     },
   });
 
-  console.log(`  ✅ Superadmin: ${user.email}`);
+  console.log(`  ✅ Admin: ${user.email}`);
+  return user;
 }
 
-// ─── MAIN ─────────────────────────────────────────────────────────────────
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 async function main() {
   console.log('🌱 Ejecutando seed...\n');
 
   console.log('📦 Experimentos:');
+  const upsertedExperiments = [];
   for (const exp of experiments) {
-    await upsertExperiment(exp);
+    const result = await upsertExperiment(exp);
+    upsertedExperiments.push(result);
   }
 
   console.log('\n👤 Usuarios del sistema:');
-  await upsertSuperAdmin();
+  const admin = await upsertAdmin();
+
+  // Crear guías faltantes usando el admin como creador
+  console.log('\n📄 Guías de experimentos:');
+  for (const exp of upsertedExperiments) {
+    if (exp._guideData) {
+      await prisma.guide.create({
+        data: {
+          ...exp._guideData,
+          createdById: admin.id,
+        },
+      });
+      console.log(`  ✅ Guía creada: ${exp._guideData.title}`);
+    } else {
+      console.log(`  ⏭️  Guía ya existe: ${exp.name}`);
+    }
+  }
 
   console.log('\n✅ Seed completado.');
 }

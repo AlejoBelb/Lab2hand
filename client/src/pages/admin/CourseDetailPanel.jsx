@@ -111,7 +111,7 @@ export default function CourseDetailPanel({ courseId, onClose, onUpdated }) {
     loadExperiments();
   }, []);
 
-  // ── Acciones ──────────────────────────────────────────────────────────
+  // â”€â”€ Acciones â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   async function handleAddTeacher(e) {
     e.preventDefault();
@@ -170,15 +170,16 @@ export default function CourseDetailPanel({ courseId, onClose, onUpdated }) {
     finally { setRemovingId(null); }
   }
 
-  // ── Estilos ───────────────────────────────────────────────────────────
+  // â”€â”€ Estilos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const selectS = {
     width: '100%', boxSizing: 'border-box',
-    background: 'rgba(255,255,255,0.05)',
+    background: '#0f1829',
     border: '1px solid rgba(255,255,255,0.09)',
     borderRadius: 8, padding: '8px 10px',
     color: '#e2e8f0', fontSize: 13, fontFamily: 'inherit',
     outline: 'none', cursor: 'pointer',
+    colorScheme: 'dark',
   };
   const btnAdd = {
     background: 'rgba(37,99,235,0.15)',
@@ -222,7 +223,7 @@ export default function CourseDetailPanel({ courseId, onClose, onUpdated }) {
           </div>
           {course && (
             <div style={{ fontSize: 11.5, color: '#475569', marginTop: 3 }}>
-              {course.grade} · Grupo {course.group} · {course.academicYear}
+              {course.grade} Â· Grupo {course.group} Â· {course.academicYear}
             </div>
           )}
         </div>
@@ -242,7 +243,7 @@ export default function CourseDetailPanel({ courseId, onClose, onUpdated }) {
 
       {error && <div style={{ color: '#f87171', fontSize: 12.5, marginBottom: 12 }}>{error}</div>}
 
-      {/* Tabs — FIX: contador de experimentos desde el array */}
+      {/* Tabs â€” FIX: contador de experimentos desde el array */}
       <div style={{
         display: 'flex', gap: 4, marginBottom: 16,
         background: 'rgba(255,255,255,0.02)',
@@ -267,7 +268,7 @@ export default function CourseDetailPanel({ courseId, onClose, onUpdated }) {
         </div>
       ) : (
         <>
-          {/* ── Tab: Docentes ── */}
+          {/* â”€â”€ Tab: Docentes â”€â”€ */}
           {tab === 'teachers' && (
             <div>
               <Section title="Docentes asignados">
@@ -330,7 +331,7 @@ export default function CourseDetailPanel({ courseId, onClose, onUpdated }) {
             </div>
           )}
 
-          {/* ── Tab: Estudiantes ── */}
+          {/* â”€â”€ Tab: Estudiantes â”€â”€ */}
           {tab === 'students' && (
             <div>
               <Section title="Estudiantes inscritos">
@@ -376,7 +377,7 @@ export default function CourseDetailPanel({ courseId, onClose, onUpdated }) {
             </div>
           )}
 
-          {/* ── Tab: Experimentos ── */}
+          {/* â”€â”€ Tab: Experimentos â”€â”€ */}
           {tab === 'experiments' && (
             <div>
               <Section title="Experimentos asignados">

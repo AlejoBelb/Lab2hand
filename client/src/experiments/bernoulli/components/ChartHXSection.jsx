@@ -27,9 +27,7 @@ export default function ChartHXSection({ rows = [], unit = 'cm' }) {
 
   return (
     <div className="chart-card">
-      <div className="chart-area">
-        <ScatterHX data={chartData} unit={unit} title="Gráfica h vs x" />
-      </div>
+      <ScatterHX data={chartData} unit={unit} title="Gráfica h vs x" />
     </div>
   )
 }

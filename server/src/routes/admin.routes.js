@@ -2,41 +2,55 @@
 
 const { Router } = require('express');
 const { requireAuth, requireRole } = require('../middlewares/auth');
+
 const {
-  // Instituciones
   getInstitutions,
   getInstitution,
   postInstitution,
   patchInstitution,
-  // Usuarios
   getUsers,
   postUser,
   patchUser,
-  approveUser,
-  // Docentes pendientes
+  approveUserController,
+  getPendingUsers,
   getPendingTeachers,
   approveTeacherController,
 } = require('../controllers/admin.controller');
 
+const {
+  getGlobalUsers,
+  postGlobalUser,
+  patchGlobalUser,
+  postAssignAdmin,
+} = require('../controllers/global.controller');
+
 const router = Router();
 
-// Todas las rutas bajo /api/admin requieren ADMIN autenticado
 router.use(requireAuth, requireRole(['ADMIN']));
 
-// ─── Instituciones ────────────────────────────────────────────────────────
-router.get('/institutions',     getInstitutions);
-router.get('/institutions/:id', getInstitution);
-router.post('/institutions',    postInstitution);
+// ─── Instituciones (gestión global) ──────────────────────────────────────────
+router.get('/institutions',       getInstitutions);
+router.get('/institutions/:id',   getInstitution);
+router.post('/institutions',      postInstitution);
 router.patch('/institutions/:id', patchInstitution);
 
-// ─── Usuarios ─────────────────────────────────────────────────────────────
-router.get('/users',    getUsers);
-router.post('/users',   postUser);
-router.patch('/users/:id', patchUser);
-router.post('/users/:userId/approve', approveUser);
+// ─── Usuarios globales ────────────────────────────────────────────────────────
+router.get('/global-users',       getGlobalUsers);
+router.post('/global-users',      postGlobalUser);
+router.patch('/global-users/:id', patchGlobalUser);
+router.post('/assign-admin',      postAssignAdmin);
 
-// ─── Docentes pendientes ──────────────────────────────────────────────────
-router.get('/pending-teachers',   getPendingTeachers);
+// ─── Usuarios pendientes de aprobación ───────────────────────────────────────
+router.get('/pending-users',      getPendingUsers);
+router.get('/pending-teachers',   getPendingTeachers); // legacy
+
+// ─── Usuarios de la institución propia ───────────────────────────────────────
+router.get('/users',              getUsers);
+router.post('/users',             postUser);
+router.patch('/users/:id',        patchUser);
+router.post('/users/:userId/approve', approveUserController);
+
+// ─── Legacy ───────────────────────────────────────────────────────────────────
 router.post('/approve-teacher',   approveTeacherController);
 
 module.exports = router;

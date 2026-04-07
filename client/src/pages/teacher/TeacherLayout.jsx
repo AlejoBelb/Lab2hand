@@ -7,7 +7,7 @@ import { useAuth } from '../../lib/auth/AuthContext.jsx';
 export default function TeacherLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(true); // ← nuevo
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   async function handleLogout() {
     await logout();
@@ -27,13 +27,15 @@ export default function TeacherLayout() {
           border-right: 1px solid rgba(255,255,255,0.07);
           display: flex; flex-direction: column;
           width: 220px; transition: width 0.2s;
+          overflow: hidden;
         }
         .tl-sidebar.collapsed { width: 60px; }
+
         .tl-logo {
           display: flex; align-items: center; gap: 10px;
           padding: 20px 16px 16px;
           border-bottom: 1px solid rgba(255,255,255,0.06);
-          overflow: hidden;
+          flex-shrink: 0;
         }
         .tl-logo-icon {
           width: 32px; height: 32px; flex-shrink: 0;
@@ -44,9 +46,29 @@ export default function TeacherLayout() {
           box-shadow: 0 4px 12px rgba(5,150,105,0.3);
         }
         .tl-logo-text { font-size: 14px; font-weight: 700; color: #f1f5f9; white-space: nowrap; }
-        .tl-logo-sub { font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
-        .tl-nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; }
-        .tl-nav-label { font-size: 10px; color: #334155; text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 8px 4px; white-space: nowrap; overflow: hidden; }
+        .tl-logo-sub  { font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+
+        .tl-collapse-btn {
+          margin-left: auto; flex-shrink: 0;
+          background: none; border: none; cursor: pointer;
+          color: #475569; padding: 6px; border-radius: 6px;
+          display: flex; align-items: center;
+          transition: color 0.15s, background 0.15s;
+        }
+        .tl-collapse-btn:hover { color: #94a3b8; background: rgba(255,255,255,0.06); }
+
+        .tl-expand-btn {
+          flex-shrink: 0; width: 100%; border: none;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
+          background: none; cursor: pointer; color: #475569;
+          padding: 18px 0;
+          display: flex; align-items: center; justify-content: center;
+          transition: color 0.15s, background 0.15s;
+        }
+        .tl-expand-btn:hover { color: #34d399; background: rgba(5,150,105,0.1); }
+
+        .tl-nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+        .tl-nav-label { font-size: 10px; color: #334155; text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 8px 4px; white-space: nowrap; }
         .tl-nav-link {
           display: flex; align-items: center; gap: 10px;
           padding: 9px 10px; border-radius: 8px;
@@ -55,9 +77,10 @@ export default function TeacherLayout() {
           white-space: nowrap; overflow: hidden;
         }
         .tl-nav-link svg { flex-shrink: 0; }
-        .tl-nav-link:hover { background: rgba(255,255,255,0.05); color: #cbd5e1; }
+        .tl-nav-link:hover  { background: rgba(255,255,255,0.05); color: #cbd5e1; }
         .tl-nav-link.active { background: rgba(5,150,105,0.12); color: #34d399; }
-        .tl-footer { padding: 12px 8px; border-top: 1px solid rgba(255,255,255,0.06); }
+
+        .tl-footer { padding: 12px 8px; border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
         .tl-user-row { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px; overflow: hidden; }
         .tl-avatar {
           width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
@@ -68,13 +91,7 @@ export default function TeacherLayout() {
         .tl-user-name { font-size: 12.5px; color: #94a3b8; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .tl-logout { background: none; border: none; cursor: pointer; color: #475569; padding: 4px; border-radius: 5px; display: flex; transition: color 0.15s; flex-shrink: 0; }
         .tl-logout:hover { color: #ef4444; }
-        .tl-toggle-btn {
-          background: none; border: none; color: #475569; cursor: pointer;
-          padding: 8px; border-radius: 6px; display: flex; align-items: center;
-          transition: color 0.15s, background 0.15s;
-          margin-left: auto; flex-shrink: 0;
-        }
-        .tl-toggle-btn:hover { color: #94a3b8; background: rgba(255,255,255,0.05); }
+
         .tl-main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: auto; }
         .tl-topbar {
           display: flex; align-items: center; justify-content: space-between;
@@ -95,40 +112,46 @@ export default function TeacherLayout() {
         .tl-content { flex: 1; padding: 28px; }
       `}</style>
 
-      {/* Sidebar */}
+      {/* ── Sidebar ── */}
       <aside className={`tl-sidebar${sidebarOpen ? '' : ' collapsed'}`}>
-        <div className="tl-logo">
-          <div className="tl-logo-icon">L2H</div>
-          {sidebarOpen && (
-            <div style={{ overflow: 'hidden' }}>
+
+        {sidebarOpen ? (
+          <div className="tl-logo">
+            <div className="tl-logo-icon">L2H</div>
+            <div style={{ overflow: 'hidden', flex: 1 }}>
               <div className="tl-logo-text">Lab2Hand</div>
               <div className="tl-logo-sub">Docente</div>
             </div>
-          )}
-          <button className="tl-toggle-btn" onClick={() => setSidebarOpen(o => !o)}
-            title={sidebarOpen ? 'Colapsar' : 'Expandir'}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+            <button className="tl-collapse-btn" onClick={() => setSidebarOpen(false)} title="Colapsar panel">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6"/>
+              </svg>
+            </button>
+          </div>
+        ) : (
+          <button className="tl-expand-btn" onClick={() => setSidebarOpen(true)} title="Expandir panel">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              {sidebarOpen
-                ? <path d="M15 18l-6-6 6-6"/>
-                : <path d="M9 18l6-6-6-6"/>
-              }
+              <path d="M9 18l6-6-6-6"/>
             </svg>
           </button>
-        </div>
+        )}
 
         <nav className="tl-nav">
-          {sidebarOpen && <span className="tl-nav-label">Mis recursos</span>}
-          <NavLink to="/teacher/guides"
+          {sidebarOpen && <span className="tl-nav-label">Mi panel</span>}
+
+          <NavLink to="/teacher/courses"
             className={({ isActive }) => `tl-nav-link${isActive ? ' active' : ''}`}
-            title={!sidebarOpen ? 'Guías' : undefined}>
+            title={!sidebarOpen ? 'Cursos' : undefined}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <path d="M8 21h8M12 17v4"/>
             </svg>
-            {sidebarOpen && 'Guías'}
+            {sidebarOpen && 'Cursos'}
           </NavLink>
+
           <NavLink to="/teacher/students"
             className={({ isActive }) => `tl-nav-link${isActive ? ' active' : ''}`}
             title={!sidebarOpen ? 'Estudiantes' : undefined}>
@@ -164,7 +187,7 @@ export default function TeacherLayout() {
         </div>
       </aside>
 
-      {/* Main */}
+      {/* ── Main ── */}
       <div className="tl-main">
         <div className="tl-topbar">
           <span className="tl-topbar-chip">

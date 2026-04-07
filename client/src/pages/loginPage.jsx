@@ -25,9 +25,7 @@ export default function LoginPage() {
     try {
       const me = await login({ email, password });
 
-      if (me?.role === "SUPERADMIN") {
-        navigate("/superadmin");
-      } else if (me?.role === "ADMIN") {
+      if (me?.role === "ADMIN") {
         navigate("/admin");
       } else if (me?.role === "TEACHER") {
         navigate("/teacher");

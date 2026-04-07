@@ -3,20 +3,21 @@
 const {
   listPendingTeachers,
   approveTeacher,
+  approveUser,
   listUsers,
   createUserByAdmin,
   updateUserByAdmin,
-  approveUser,
 } = require('../services/admin.service');
 
+
+// ─── INSTITUCIONES ────────────────────────────────────────────────────────────
+
 const {
-  listInstitutions,
+  listAllInstitutions,
   getInstitutionById,
   createInstitution,
   updateInstitution,
-} = require('../services/institution.service');
-
-// ─── HELPERS ──────────────────────────────────────────────────────────────
+} = require('../services/global.service');
 
 function parseBoolean(val) {
   if (val === 'true' || val === true) return true;
@@ -24,230 +25,139 @@ function parseBoolean(val) {
   return undefined;
 }
 
-function getAdminInstitutionId(req) {
-  return req.user?.institutionId || null;
-}
-
-// ─── INSTITUCIONES ────────────────────────────────────────────────────────
-
-/* GET /api/admin/institutions */
 async function getInstitutions(req, res, next) {
   try {
-    const adminInstitutionId = getAdminInstitutionId(req);
-    if (!adminInstitutionId) {
-      return res.status(403).json({ message: 'Admin sin institución asignada' });
-    }
-
     const { isActive, search } = req.query;
-    const institutions = await listInstitutions({
-      adminInstitutionId,
-      isActive: parseBoolean(isActive),
-      search,
-    });
-
+    const institutions = await listAllInstitutions({ isActive: parseBoolean(isActive), search });
     return res.json({ institutions });
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
 }
 
-/* GET /api/admin/institutions/:id */
 async function getInstitution(req, res, next) {
   try {
-    const adminInstitutionId = getAdminInstitutionId(req);
-    const { id } = req.params;
-
-    if (id !== adminInstitutionId) {
-      return res.status(403).json({ message: 'No tienes permiso para ver esta institución' });
-    }
-
-    const institution = await getInstitutionById(id);
-    if (!institution) {
-      return res.status(404).json({ message: 'Institución no encontrada' });
-    }
-
+    const institution = await getInstitutionById(req.params.id);
     return res.json({ institution });
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
 }
 
-/* POST /api/admin/institutions */
 async function postInstitution(req, res, next) {
   try {
-    const { name } = req.body;
-    const institution = await createInstitution({ name });
+    const institution = await createInstitution({ name: req.body.name });
     return res.status(201).json({ institution });
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
 }
 
-/* PATCH /api/admin/institutions/:id */
 async function patchInstitution(req, res, next) {
   try {
-    const adminInstitutionId = getAdminInstitutionId(req);
-    const { id } = req.params;
     const { name, isActive } = req.body;
-
-    const institution = await updateInstitution(id, {
-      name,
-      isActive: parseBoolean(isActive),
-      adminInstitutionId,
+    const institution = await updateInstitution(req.params.id, {
+      name, isActive: parseBoolean(isActive),
     });
-
     return res.json({ institution });
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
 }
 
-// ─── USUARIOS ─────────────────────────────────────────────────────────────
+// ─── USUARIOS DE LA INSTITUCIÓN ───────────────────────────────────────────────
 
-/* GET /api/admin/users */
 async function getUsers(req, res, next) {
   try {
-    const adminInstitutionId = getAdminInstitutionId(req);
-    if (!adminInstitutionId) {
-      return res.status(403).json({ message: 'Admin sin institución asignada' });
-    }
-
-    const { page, pageSize, role, isActive, search, sort, order } = req.query;
-
+    const { page, pageSize, role, isActive, search, sort, order, institutionId } = req.query;
     const result = await listUsers({
-      adminInstitutionId,
-      page,
-      pageSize,
-      role,
+      adminInstitutionId: institutionId || undefined,
+      page, pageSize, role,
       isActive: parseBoolean(isActive),
-      search,
-      sort,
-      order,
+      search, sort, order,
     });
-
     return res.json(result);
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
 }
 
-/* POST /api/admin/users */
 async function postUser(req, res, next) {
   try {
-    const adminInstitutionId = getAdminInstitutionId(req);
-    if (!adminInstitutionId) {
-      return res.status(403).json({ message: 'Admin sin institución asignada' });
-    }
-
-    const { email, password, firstName, lastName, role } = req.body;
-
+    const { email, password, firstName, lastName, role, institutionId } = req.body;
     const user = await createUserByAdmin({
-      adminInstitutionId,
-      email,
-      password,
-      firstName,
-      lastName,
-      role,
+      email, password, firstName, lastName, role, institutionId,
     });
-
     return res.status(201).json({ user });
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
 }
 
-/* PATCH /api/admin/users/:id */
 async function patchUser(req, res, next) {
   try {
-    const adminInstitutionId = getAdminInstitutionId(req);
-    if (!adminInstitutionId) {
-      return res.status(403).json({ message: 'Admin sin institución asignada' });
+    const { firstName, lastName, role, isActive } = req.body;
+    const parsedIsActive = parseBoolean(isActive);
+
+    // Un admin no puede desactivarse a sí mismo
+    if (req.params.id === req.user.id && parsedIsActive === false) {
+      return res.status(400).json({ message: 'No puedes desactivar tu propia cuenta' });
     }
 
-    const { id } = req.params;
-    const { firstName, lastName, role, isActive } = req.body;
-
-    const user = await updateUserByAdmin(id, {
-      adminInstitutionId,
-      firstName,
-      lastName,
-      role,
-      isActive: parseBoolean(isActive),
+    const user = await updateUserByAdmin(req.params.id, {
+      firstName, lastName, role,
+      isActive: parsedIsActive,
+      requesterId: req.user.id,
     });
-
     return res.json({ user });
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
 }
 
-/* POST /api/admin/users/:userId/approve */
+// ─── APROBACIÓN DE USUARIOS ───────────────────────────────────────────────────
+
+/* POST /api/admin/users/:userId/approve
+   Body: { role: 'ADMIN' | 'TEACHER' | 'STUDENT' }
+*/
 async function approveUserController(req, res, next) {
   try {
-    const adminInstitutionId = getAdminInstitutionId(req);
-    if (!adminInstitutionId) {
-      return res.status(403).json({ message: 'Admin sin institución asignada' });
-    }
-
     const { userId } = req.params;
     const { role } = req.body;
 
     if (!role) {
-      return res.status(400).json({ message: 'El rol es obligatorio (STUDENT o TEACHER)' });
+      return res.status(400).json({ message: 'El rol es obligatorio (ADMIN, TEACHER o STUDENT)' });
     }
 
-    const user = await approveUser({ userId, adminInstitutionId, approvedRole: role });
+    const user = await approveUser({ userId, approvedRole: role });
     return res.json({ message: 'Usuario aprobado correctamente', user });
   } catch (err) {
     next(err);
   }
 }
 
-// ─── DOCENTES PENDIENTES ──────────────────────────────────────────────────
+// ─── USUARIOS PENDIENTES ──────────────────────────────────────────────────────
 
-/* GET /api/admin/pending-teachers */
-async function getPendingTeachers(req, res, next) {
+/* GET /api/admin/pending-users */
+async function getPendingUsers(req, res, next) {
   try {
-    const adminInstitutionId = getAdminInstitutionId(req);
-    const teachers = await listPendingTeachers({ adminInstitutionId });
-    return res.json({ teachers });
-  } catch (err) {
-    next(err);
-  }
+    const users = await listPendingTeachers();
+    return res.json({ users });
+  } catch (err) { next(err); }
 }
 
-/* POST /api/admin/approve-teacher */
+// Legacy — se mantiene por compatibilidad
+async function getPendingTeachers(req, res, next) {
+  return getPendingUsers(req, res, next);
+}
+
 async function approveTeacherController(req, res, next) {
   try {
-    const adminInstitutionId = getAdminInstitutionId(req);
-    if (!adminInstitutionId) {
-      return res.status(403).json({ message: 'Admin sin institución asignada' });
-    }
-
     const { userId } = req.body;
     if (!userId) {
       return res.status(400).json({ message: 'userId es obligatorio' });
     }
-
-    const user = await approveTeacher({ userId, adminInstitutionId });
-    return res.json({ message: 'Docente aprobado correctamente', user });
-  } catch (err) {
-    next(err);
-  }
+    const user = await approveTeacher({ userId });
+    return res.json({ message: 'Usuario aprobado correctamente', user });
+  } catch (err) { next(err); }
 }
 
 module.exports = {
-  // Instituciones
   getInstitutions,
   getInstitution,
   postInstitution,
   patchInstitution,
-  // Usuarios
   getUsers,
   postUser,
   patchUser,
   approveUserController,
-  // Docentes pendientes (legacy)
+  getPendingUsers,
   getPendingTeachers,
   approveTeacherController,
 };

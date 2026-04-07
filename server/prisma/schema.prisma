@@ -12,7 +12,6 @@ datasource db {
 // ENUMS
 // =====================
 enum UserRole {
-  SUPERADMIN
   ADMIN
   TEACHER
   STUDENT
@@ -59,6 +58,7 @@ model User {
   firstName       String?
   lastName        String?
   role            UserRole
+  requestedRole   String?   // "STUDENT" o "TEACHER"
   isActive        Boolean  @default(true)
   pendingApproval Boolean  @default(false)
 
@@ -138,8 +138,9 @@ model Guide {
   status  GuideStatus @default(DRAFT)
   content Json?
 
-  courseId String
-  course   Course @relation(fields: [courseId], references: [id])
+  // Opcional: guías globales por experimento no pertenecen a ningún curso
+  courseId String?
+  course   Course? @relation(fields: [courseId], references: [id])
 
   experimentId String?
   experiment   Experiment? @relation(fields: [experimentId], references: [id])
@@ -164,27 +165,11 @@ model Experiment {
   status      String
   order       Int
 
-  scenarios Scenario[]
   courses   CourseExperiment[]
   guides    Guide[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-model Scenario {
-  id    String @id @default(cuid())
-  slug  String
-  name  String
-  order Int
-
-  experimentId String
-  experiment   Experiment @relation(fields: [experimentId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([experimentId, slug])
 }
 
 model CourseExperiment {

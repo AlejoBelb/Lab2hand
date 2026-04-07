@@ -2,6 +2,8 @@
 /* =========================================================================
    Variables y base (tema oscuro) + tipografía accesible
    ========================================================================= */
+@import './finishOverlay.css';
+
 :root {
   /* Paleta existente */
   --bg: #0b0f19;
@@ -115,14 +117,18 @@ a:hover { text-decoration: underline; }
    Contenedores y grids
    ========================================================================= */
 .container {
-  max-width: 1400px;
-  margin: 24px auto;
+  width: 100%;
+  margin: 12px 0;
   padding: 0 16px;
+  box-sizing: border-box;
 }
 
 .container-wide {
-  max-width: 1600px;
-  padding: 0 12px;
+  width: min(100%, 1280px);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 
 .grid {
@@ -433,12 +439,16 @@ td input { width: 100%; }
    Sidebar colapsable tipo riel
    ========================================================================= */
 .layout-shell {
-  --sidebarW: 340px;
+  --sidebarW: 260px;
   --railW: 22px;
   display: grid;
   grid-template-columns: var(--sidebarW) 1fr;
-  gap: 16px;
+  gap: 12px;
   transition: grid-template-columns .28s ease;
+  width: min(100%, 1280px);
+  max-width: 1280px;
+  margin: 0 auto;
+  justify-content: center;
 }
 .layout-shell.is-collapsed { --sidebarW: var(--railW); }
 
@@ -494,49 +504,75 @@ td input { width: 100%; }
    ========================================================================= */
 .right-split {
   display: grid;
-  grid-template-columns: minmax(640px, 1fr) 420px;
-  gap: 16px;
+  grid-template-columns: 1fr 380px;
+  gap: 12px;
   align-items: start;
 }
 
-/* Columna de tabla bloqueada en ancho */
-.right-split > :last-child {
-  width: 420px;
-  max-width: 420px;
-  min-width: 420px;
-  justify-self: stretch;
-  font-size: 0.92rem;
-  line-height: 1.2;
+/* right-card es transparente, los hijos tienen su propio fondo */
+.right-card {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+/* Zona del tanque con su propio fondo */
+.tank-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.chart-card {
+  margin-top: 20px;
+}
+
+/* Tabla con su propio fondo independiente */
+.captures-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
 }
 
 /* Tablas internas más cómodas */
-.right-split > :last-child table {
+.captures-card table {
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
 }
-.right-split > :last-child thead th {
+.captures-card thead th {
   padding: 10px 12px;
   font-weight: 600;
 }
-.right-split > :last-child tbody td {
+.captures-card tbody td {
   padding: 10px 12px;
 }
 
 /* Acciones en encabezado de tabla */
-.right-split > :last-child .table-actions,
-.right-split > :last-child .export-actions { gap: 8px; }
+.captures-card .table-actions,
+.captures-card .export-actions { gap: 8px; }
 
 /* Responsividad del split */
-@media (max-width: 1280px) {
-  .right-split { grid-template-columns: minmax(560px, 1fr) 380px; }
-  .right-split > :last-child {
-    width: 380px; max-width: 380px; min-width: 380px; font-size: 0.9rem;
-  }
+@media (max-width: 1400px) {
+  .right-split { grid-template-columns: 1fr 360px; }
+}
+@media (max-width: 1100px) {
+  .right-split { grid-template-columns: 1fr 320px; }
+  .layout-shell { --sidebarW: 220px; }
 }
 @media (max-width: 900px) {
   .right-split { grid-template-columns: 1fr; }
-  .right-split > :last-child { width: 100%; max-width: none; min-width: 0; }
+  .layout-shell { --sidebarW: 200px; }
+}
+@media (max-width: 700px) {
+  .layout-shell {
+    grid-template-columns: 1fr;
+    --sidebarW: 100%;
+  }
+  .layout-shell .sidebar-handle { display: none; }
 }
 
 /* Ajustes de tabla de capturas */
@@ -557,7 +593,7 @@ td input { width: 100%; }
 
 /* Tabla con scroll y head sticky */
 .table-wrapper {
-  max-height: 360px;
+  max-height: 480px;
   overflow-y: auto;
   overflow-x: hidden;
   border-radius: 10px;
@@ -613,86 +649,11 @@ td input { width: 100%; }
 .chart-area {
   position: relative;
   width: 100%;
-  height: 320px;
-  min-height: 320px;
-  overflow: hidden;
+  height: 480px;
   box-sizing: border-box;
-}
-@media (min-height: 900px) {
-  .chart-area { height: 380px; min-height: 380px; }
-}
-
-/* ===== Overlay de FINALIZADO estilo videojuego ===== */
-.finish-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  background: radial-gradient(1200px 800px at 50% 50%, rgba(255,255,255,0.05), rgba(0,0,0,0.6) 60%, rgba(0,0,0,0.8) 100%);
-  animation: overlayFade .35s ease-out both;
-}
-
-.finish-box {
-  text-align: center;
-  transform: translateZ(0);
-  animation: popIn .45s cubic-bezier(.2,1.2,.2,1) both;
-  pointer-events: none;
-}
-
-.finish-text {
-  font-size: clamp(36px, 6vw, 88px);
-  font-weight: 800;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: #fff;
-  text-shadow:
-    0 2px 0 rgba(0,0,0,0.35),
-    0 6px 14px rgba(0,0,0,0.45),
-    0 0 28px rgba(96,165,250,0.35);
-  background: linear-gradient(90deg, #f59e0b 0%, #f97316 25%, #f43f5e 50%, #60a5fa 75%, #22d3ee 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  position: relative;
-  overflow: hidden;
-}
-
-.finish-text::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.85) 15%, transparent 30%);
-  transform: translateX(-120%);
-  animation: shine 1.4s ease-out .25s forwards;
-}
-
-.finish-subtitle {
+  padding-bottom: 16px;
   margin-top: 8px;
-  font-size: clamp(14px, 2.2vw, 22px);
-  font-weight: 600;
-  color: #d1d5db;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.35);
-  letter-spacing: 1px;
 }
-
-@keyframes popIn {
-  0%   { transform: scale(.85); opacity: 0; }
-  60%  { transform: scale(1.06); opacity: 1; }
-  100% { transform: scale(1); }
-}
-@keyframes shine {
-  0%   { transform: translateX(-120%); }
-  100% { transform: translateX(120%); }
-}
-@keyframes overlayFade {
-  0%   { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-/* client/src/shared/styles/styles.css */
 
 /* Fondo global oscuro con degradado suave */
 html, body, #root {
@@ -711,9 +672,11 @@ body {
 
 /* Ancho máximo y densidad */
 .container-max {
-  max-width: 1360px;
+  width: min(100%, 1280px);
+  max-width: 1280px;
   margin: 0 auto;
-  padding-inline: 10px;
+  padding-inline: 16px;
+  box-sizing: border-box;
 }
 
 /* Glass utilities */
@@ -795,4 +758,26 @@ section, header, nav { margin: 0; }
 .exp-content button[title*="Volver a Spring"],
 .exp-content button[aria-label*="Volver a Spring"] {
   display: none !important;
+
+/* =========================================================================
+   Título de gráfica con botón alineado
+   ========================================================================= */
+.chart-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+
+.chart-title h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.push-right {
+  margin-left: auto;
+}
+
 }

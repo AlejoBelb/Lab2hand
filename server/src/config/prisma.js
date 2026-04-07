@@ -6,7 +6,6 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 // 🔍 DEBUG: mostrar modelos cargados por Prisma Client
-console.log('🧩 Prisma models cargados:', Object.keys(prisma));
 
 process.on('SIGINT', async () => {
   try {

@@ -32,16 +32,10 @@ function requireAuth(req, res, next) {
 }
 
 // Middleware: exige que el usuario tenga uno de los roles indicados
-// SUPERADMIN pasa siempre salvo que se le excluya explícitamente
 function requireRole(roles = []) {
   return (req, res, next) => {
     if (!req.user?.role) {
       return res.status(401).json({ error: 'No autorizado' });
-    }
-
-    // SUPERADMIN tiene acceso a todo excepto rutas que lo excluyan explícitamente
-    if (req.user.role === 'SUPERADMIN') {
-      return next();
     }
 
     if (roles.length && !roles.includes(req.user.role)) {
@@ -52,15 +46,15 @@ function requireRole(roles = []) {
   };
 }
 
-// Middleware exclusivo para SUPERADMIN — no permite otros roles
-function requireSuperAdmin(req, res, next) {
+// Alias semántico para rutas exclusivas de ADMIN
+function requireAdmin(req, res, next) {
   if (!req.user) {
     return res.status(401).json({ error: 'No autorizado' });
   }
-  if (req.user.role !== 'SUPERADMIN') {
-    return res.status(403).json({ error: 'Prohibido', message: 'Solo superadmin' });
+  if (req.user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Prohibido', message: 'Solo admin' });
   }
   next();
 }
 
-module.exports = { requireAuth, requireRole, requireSuperAdmin };
+module.exports = { requireAuth, requireRole, requireAdmin };

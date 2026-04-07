@@ -20,7 +20,8 @@ export default function CaptureTable({
   editable = false,
   maxHeight = 100,
   onEditRow,
-  onExport
+  onExport,
+  canExport = false
 }) {
   const [editingIndex, setEditingIndex] = useState(null)
   const [draftH, setDraftH] = useState('')
@@ -78,7 +79,7 @@ export default function CaptureTable({
           <span className="counter-badge" title="Cantidad de capturas">{count}</span>
         </h2>
         <div className="export-actions" style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-secondary" onClick={onExport} disabled={rows.length === 0}>Exportar CSV</button>
+          <button className="btn btn-secondary" onClick={onExport} disabled={!canExport}>Exportar Excel</button>
         </div>
       </div>
 

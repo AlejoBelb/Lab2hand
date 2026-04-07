@@ -1,5 +1,8 @@
 // client/src/experiments/spring-static/pages/HookeStatic.jsx
+
+import { exportToExcel } from '../../../shared/utils/exportExcel.js';
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ResponsiveContainer,
   LineChart,
@@ -13,8 +16,10 @@ import {
 } from "recharts";
 import "../styles/hooke.css";
 import HookeMAS from "./HookeMAS";
+import FinishOverlay from "../../../shared/components/FinishOverlay.jsx";
 
 export default function HookeStatic({ initialShowMAS = false }) {
+  const navigate = useNavigate();
   const LS_KEY = "lab2hand:spring-static:v1";
 
   const [massValue, setMassValue] = useState(200);
@@ -25,6 +30,7 @@ export default function HookeStatic({ initialShowMAS = false }) {
   const [L0, setL0] = useState(30);
 
   const [rows, setRows] = useState([]);
+  const [showFinishOverlay, setShowFinishOverlay] = useState(false);
   const [rightTab, setRightTab] = useState("visual");
   const [showFit, setShowFit] = useState(true);
 
@@ -158,21 +164,15 @@ export default function HookeStatic({ initialShowMAS = false }) {
 
   const exportCSV = () => {
     if (rows.length === 0) return;
-    const head = [
-      `m (${massLabel})`, "m (kg)", "k (N/m)", "g (m/s^2)",
-      `x (${lenLabel})`, `L (${lenLabel})`,
-    ];
-    const data = rows.map((r) => [r.m_ui, r.m_kg, r.k_Npm, r.g_ms2, r.x_ui, r.L_ui]);
-    const csv = [head.join(","), ...data.map((r) => r.join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `spring_static_captures_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    exportToExcel({
+      title: 'Ley de Hooke (Equilibrio estático)',
+      subtitle: 'Elongación de resorte bajo carga — Lab2Hand',
+      params: [`k = ${k} N/m`, `g = ${g} m/s²`, `L₀ = ${L0} ${lenLabel}`],
+      headers: [`Masa (${massLabel})`, 'Masa (kg)', 'k (N/m)', 'g (m/s²)', `Elongación (${lenLabel})`, `Longitud total (${lenLabel})`],
+      data: rows.map((r) => [r.m_ui, r.m_kg, r.k_Npm, r.g_ms2, r.x_ui, r.L_ui]),
+      filename: `hooke_estatico_lab2hand_${new Date().toISOString().slice(0,10)}`,
+      sheetName: 'Hooke',
+    });
   };
 
   const viz = useMemo(() => ({
@@ -551,15 +551,46 @@ export default function HookeStatic({ initialShowMAS = false }) {
         }
       `}</style>
 
+      <FinishOverlay
+        visible={showFinishOverlay}
+        title="Exportado"
+        subtitle="Spring — Ley de Hooke"
+        duration={1800}
+        onDone={() => setShowFinishOverlay(false)}
+      />
+
       {/* ── Header ── */}
-      <header className="hs-header">
-        <h1>Spring — Equilibrio estático · Ley de Hooke</h1>
-        <p>
-          Modelo: mg = k·x → x = (m·g)/k &nbsp;·&nbsp; Atajos:{" "}
-          <span className="hs-kbd">C</span> Capturar &nbsp;
-          <span className="hs-kbd">L</span> Limpiar &nbsp;
-          <span className="hs-kbd">E</span> Exportar
-        </p>
+      <header className="hs-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20 }}>
+        <div>
+          <h1>Spring — Equilibrio estático · Ley de Hooke</h1>
+          <p>
+            Modelo: mg = k·x → x = (m·g)/k &nbsp;·&nbsp; Atajos:{" "}
+            <span className="hs-kbd">C</span> Capturar &nbsp;
+            <span className="hs-kbd">L</span> Limpiar &nbsp;
+            <span className="hs-kbd">E</span> Exportar
+          </p>
+        </div>
+        <button
+          onClick={() => navigate("/")}
+          style={{
+            display: "flex", alignItems: "center", gap: 7,
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: 9, padding: "9px 16px",
+            color: "#94a3b8", fontSize: "13.5px",
+            fontFamily: "inherit", cursor: "pointer",
+            whiteSpace: "nowrap", flexShrink: 0,
+            transition: "background 0.2s, color 0.2s",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.09)"; e.currentTarget.style.color = "#e2e8f0"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "#94a3b8"; }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          Volver al inicio
+        </button>
       </header>
 
       {/* ── Fila principal ── */}
@@ -662,7 +693,7 @@ export default function HookeStatic({ initialShowMAS = false }) {
               <div className="hs-actions">
                 <button className="hs-btn-primary" onClick={handleCapture}>Capturar</button>
                 <button className="hs-btn-ghost" onClick={clearRows}>Limpiar tabla</button>
-                <button className="hs-btn-ghost" onClick={exportCSV}>Exportar CSV</button>
+                <button className="hs-btn-ghost" onClick={exportCSV}>Exportar Excel</button>
               </div>
             </div>
           </div>

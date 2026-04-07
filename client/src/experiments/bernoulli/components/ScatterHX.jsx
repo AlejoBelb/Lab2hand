@@ -116,7 +116,7 @@ export default function ScatterHX({ data = [], unit = 'cm', title = 'h vs x' }) 
 
   return (
     <div>
-      <div className="chart-title">
+      <div className="chart-title" style={{ marginBottom: 12 }}>
         <h3 style={{ margin: 0 }}>{title}</h3>
         <div className="push-right">
           <button className="btn btn-secondary" onClick={handleExportPNG} disabled={cleaned.length === 0}>
@@ -127,7 +127,7 @@ export default function ScatterHX({ data = [], unit = 'cm', title = 'h vs x' }) 
 
       <div ref={containerRef} className="chart-area">
         <ResponsiveContainer width="100%" height="100%">
-          <ScatterChart margin={{ top: 8, right: 12, bottom: 12, left: 10 }}>
+          <ScatterChart margin={{ top: 8, right: 12, bottom: 36, left: 10 }}>
             <CartesianGrid strokeOpacity={0.18} strokeDasharray="3 3" />
             <XAxis
               type="number"
@@ -136,7 +136,7 @@ export default function ScatterHX({ data = [], unit = 'cm', title = 'h vs x' }) 
               domain={domainX}
               tickMargin={6}
               tickFormatter={(v) => `${roundAuto(v, unit === 'cm' ? 2 : 3)}`}
-              label={{ value: `x (${unitLabel})`, position: 'insideBottom', offset: -8 }}
+              label={{ value: `x (${unitLabel})`, position: 'insideBottom', offset: -20 }}
             />
             <YAxis
               type="number"

@@ -1,7 +1,8 @@
 // client/src/pages/HomeMenu.jsx
-import React from "react";
 import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 
+// Array de experimentos
 const experiments = [
   {
     id: "bernoulli",
@@ -14,15 +15,10 @@ const experiments = [
     colorBorder: "rgba(37,99,235,0.3)",
     icon: (
       <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-        {/* Recipiente */}
         <rect x="10" y="8" width="22" height="26" rx="2" stroke="#3b82f6" strokeWidth="2" fill="rgba(59,130,246,0.08)"/>
-        {/* Agua */}
         <rect x="11" y="20" width="20" height="13" rx="1" fill="rgba(59,130,246,0.25)"/>
-        {/* Orificio */}
         <circle cx="32" cy="28" r="2" fill="#60a5fa"/>
-        {/* Chorro parabólico */}
         <path d="M34 28 Q40 30 44 38" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" fill="none" strokeDasharray="2 2"/>
-        {/* Suelo */}
         <line x1="6" y1="40" x2="46" y2="40" stroke="#334155" strokeWidth="1.5" strokeLinecap="round"/>
       </svg>
     ),
@@ -30,7 +26,7 @@ const experiments = [
   {
     id: "spring",
     path: "/experiments/spring",
-    title: "Spring — Estático",
+    title: "Spring – Estático",
     subtitle: "Ley de Hooke",
     description: "Cuelga masas conocidas y mide la deformación del resorte. Captura puntos para estimar la constante k mediante regresión lineal.",
     color: "#10b981",
@@ -38,16 +34,12 @@ const experiments = [
     colorBorder: "rgba(16,185,129,0.3)",
     icon: (
       <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-        {/* Techo */}
         <rect x="16" y="6" width="16" height="4" rx="1" fill="#334155"/>
-        {/* Resorte zigzag */}
         <polyline
           points="24,10 24,13 20,15 28,18 20,21 28,24 20,27 28,30 24,32 24,35"
           stroke="#34d399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"
         />
-        {/* Masa */}
         <rect x="18" y="35" width="12" height="8" rx="2" fill="rgba(52,211,153,0.2)" stroke="#34d399" strokeWidth="1.5"/>
-        {/* Flecha deformación */}
         <line x1="34" y1="10" x2="34" y2="38" stroke="#475569" strokeWidth="1" strokeDasharray="2 2"/>
         <line x1="32" y1="38" x2="36" y2="38" stroke="#475569" strokeWidth="1"/>
         <text x="36" y="26" fill="#64748b" fontSize="7" fontFamily="monospace">x</text>
@@ -65,16 +57,12 @@ const experiments = [
     colorBorder: "rgba(139,92,246,0.3)",
     icon: (
       <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-        {/* Eje */}
         <line x1="4" y1="24" x2="44" y2="24" stroke="#334155" strokeWidth="1.5"/>
-        {/* Onda sinusoidal amortiguada */}
         <path
           d="M4,24 C7,14 11,14 14,24 C17,34 21,34 24,24 C27,16 30,16 33,24 C36,30 39,30 41,24"
           stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" fill="none"
         />
-        {/* Punto actual */}
         <circle cx="41" cy="24" r="3" fill="#8b5cf6"/>
-        {/* Flecha vertical */}
         <line x1="24" y1="6" x2="24" y2="42" stroke="#334155" strokeWidth="1" strokeDasharray="2 2"/>
         <text x="25" y="10" fill="#64748b" fontSize="7" fontFamily="monospace">A</text>
       </svg>
@@ -84,6 +72,12 @@ const experiments = [
 
 export default function HomeMenu() {
   const navigate = useNavigate();
+  const [exiting, setExiting] = useState(false);
+
+  const handleNavigate = (path) => {
+    setExiting(true);
+    setTimeout(() => navigate(path), 250);
+  };
 
   return (
     <>
@@ -273,37 +267,33 @@ export default function HomeMenu() {
         }
       `}</style>
 
-      <div className="hm-root">
-        {/* Hero */}
-        <header className="hm-hero">
+      <div className={`hm-root page-enter${exiting ? " page-exit" : ""}`}>
+        <header className="hm-hero hero-enter">
           <h1 className="hm-hero-title">Experimentos de Física</h1>
           <p className="hm-hero-sub">
             Simulaciones interactivas para registrar, analizar y exportar datos de laboratorio.
           </p>
         </header>
 
-        {/* Grid de experimentos */}
         <section className="hm-grid">
           {experiments.map((exp) => (
             <div
               key={exp.id}
-              className="hm-card"
+              className="hm-card card-stagger"
               data-exp={exp.id}
-              onClick={() => navigate(exp.path)}
+              onClick={() => handleNavigate(exp.path)}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && navigate(exp.path)}
+              onKeyDown={(e) => e.key === "Enter" && handleNavigate(exp.path)}
               aria-label={`Abrir experimento ${exp.title}`}
             >
               <div className="hm-card-head">
-                {/* Ícono SVG */}
                 <div
                   className="hm-card-icon"
                   style={{ background: exp.colorSoft, border: `1px solid ${exp.colorBorder}` }}
                 >
                   {exp.icon}
                 </div>
-                {/* Tag */}
                 <span
                   className="hm-card-tag"
                   style={{ color: exp.color, borderColor: exp.colorBorder, background: exp.colorSoft }}
@@ -335,7 +325,6 @@ export default function HomeMenu() {
           ))}
         </section>
 
-        {/* Sección de video */}
         <section>
           <div className="hm-section-title">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

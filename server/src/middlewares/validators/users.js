@@ -9,7 +9,7 @@ const {
   booleanOptional,
 } = require('./common');
 
-const ALL_ROLES = ['SUPERADMIN', 'ADMIN', 'TEACHER', 'STUDENT'];
+const ALL_ROLES = ['ADMIN', 'TEACHER', 'STUDENT'];
 const ADMIN_EDITABLE_ROLES = ['ADMIN', 'TEACHER', 'STUDENT'];
 
 // Listar usuarios (ADMIN institucional)
@@ -27,7 +27,7 @@ const listUsersRules = [
 
 const getUserByIdRules = [cuidParam('id')];
 
-// Actualizar usuario (ADMIN institucional — no puede asignar SUPERADMIN)
+// Actualizar usuario (ADMIN institucional)
 const updateUserRules = [
   cuidParam('id'),
   stringOptional('firstName', 1, 100),

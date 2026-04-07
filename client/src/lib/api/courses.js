@@ -6,16 +6,17 @@ async function safeJson(res) {
   try { return await res.json(); } catch { return null; }
 }
 
-// ─── Cursos ───────────────────────────────────────────────────────────────
+// ── Cursos ────────────────────────────────────────────────────────────────────
 
-export async function listCourses({ page = 1, pageSize = 20, status, search, sort, order } = {}) {
+export async function listCourses({ page = 1, pageSize = 20, status, search, sort, order, institutionId } = {}) {
   const p = new URLSearchParams();
   p.set('page', String(page));
   p.set('pageSize', String(pageSize));
-  if (status) p.set('status', status);
-  if (search?.trim()) p.set('search', search.trim());
-  if (sort) p.set('sort', sort);
-  if (order) p.set('order', order);
+  if (status)            p.set('status', status);
+  if (search?.trim())    p.set('search', search.trim());
+  if (sort)              p.set('sort', sort);
+  if (order)             p.set('order', order);
+  if (institutionId)     p.set('institutionId', institutionId);
 
   const res = await http.get(`/api/admin/courses?${p}`);
   if (!res.ok) throw new Error((await safeJson(res))?.message || 'Error al obtener cursos');
@@ -28,8 +29,8 @@ export async function getCourse(id) {
   return res.json();
 }
 
-export async function createCourse({ name, grade, group, academicYear, startsAt, endsAt }) {
-  const res = await http.post('/api/admin/courses', { name, grade, group, academicYear, startsAt, endsAt });
+export async function createCourse({ name, grade, group, academicYear, startsAt, endsAt, institutionId }) {
+  const res = await http.post('/api/admin/courses', { name, grade, group, academicYear, startsAt, endsAt, institutionId });
   if (!res.ok) throw new Error((await safeJson(res))?.message || 'Error al crear el curso');
   return res.json();
 }
@@ -40,7 +41,7 @@ export async function updateCourse(id, data) {
   return res.json();
 }
 
-// ─── Membresías ───────────────────────────────────────────────────────────
+// ── Membresías ────────────────────────────────────────────────────────────────
 
 export async function addTeacher(courseId, { teacherId, role }) {
   const res = await http.post(`/api/admin/courses/${courseId}/teachers`, { teacherId, role });

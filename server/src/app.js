@@ -1,7 +1,6 @@
 // server/src/app.js
 // Aplicación Express principal de Lab2hand con middlewares y routers.
 
-// Dependencias / Imports
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -17,14 +16,15 @@ const healthRouter = require('./routes/health.routes');
 const experimentRouter = require('./routes/experiment.routes');
 const meRouter = require('./routes/me.routes');
 const menuRouter = require('./routes/menu.routes');
-const verificationRouter = require('./routes/verification.routes');
 const adminRouter = require('./routes/admin.routes');
-const superadminRouter = require('./routes/superadmin.routes');
 const teacherCoursesRouter = require('./routes/teacherCourses.routes');
 const teacherGuidesRouter = require('./routes/teacherGuides.routes');
 const teacherStudentsRouter = require('./routes/teacherStudents.routes');
 const courseExperimentsRouter = require('./routes/courseExperiments.routes');
 const studentRouter = require('./routes/student.routes');
+
+const notFound = require('./middlewares/notFound');
+const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
 
@@ -67,7 +67,7 @@ app.use(
 // =======================
 // RUTAS API
 // =======================
-app.use('/api/superadmin', superadminRouter);
+app.use(express.static('public'));
 app.use('/api/admin', adminRouter);
 app.use('/api/admin/courses', coursesRouter);
 app.use('/api/teacher', teacherCoursesRouter);
@@ -81,24 +81,11 @@ app.use('/api/echo', echoRouter);
 app.use('/api/experiments', experimentRouter);
 app.use('/api/me', meRouter);
 app.use('/api/menu', menuRouter);
-app.use('/api/verification', verificationRouter);
 
 // 404
-app.use((req, res) => {
-  res.status(404).json({
-    status: 'error',
-    message: 'Ruta no encontrada',
-    path: req.originalUrl
-  });
-});
+app.use(notFound);
 
 // Error handler
-app.use((err, _req, res, _next) => {
-  const status = err.status || 500;
-  res.status(status).json({
-    status: 'error',
-    message: err.message || 'Error interno del servidor'
-  });
-});
+app.use(errorHandler);
 
 module.exports = app;

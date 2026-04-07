@@ -1,138 +1,273 @@
 // client/src/pages/teacher/StudentsPage.jsx
 
-import { useEffect, useState, useCallback } from 'react';
-import { listStudents, approveStudent, rejectStudent, enrollStudent, unenrollStudent } from '../../lib/api/teacherStudents.js';
-import { getMyCourses } from '../../lib/api/teacherGuides.js';
+import { useEffect, useState, useCallback } from "react";
+import {
+  listStudents,
+  approveStudent,
+  rejectStudent,
+  enrollStudent,
+  unenrollStudent,
+} from "../../lib/api/teacherStudents.js";
+import { getMyCourses } from "../../lib/api/teacherGuides.js";
 
 function StatusBadge({ isActive, pendingApproval }) {
   const s = pendingApproval
-    ? { bg: 'rgba(245,158,11,0.08)', color: '#fbbf24', border: 'rgba(245,158,11,0.2)', label: 'Pendiente' }
+    ? {
+        bg: "rgba(245,158,11,0.08)",
+        color: "#fbbf24",
+        border: "rgba(245,158,11,0.2)",
+        label: "Pendiente",
+      }
     : isActive
-      ? { bg: 'rgba(16,185,129,0.08)', color: '#34d399', border: 'rgba(16,185,129,0.18)', label: 'Aprobado' }
-      : { bg: 'rgba(239,68,68,0.08)', color: '#f87171', border: 'rgba(239,68,68,0.15)', label: 'Rechazado' };
+      ? {
+          bg: "rgba(16,185,129,0.08)",
+          color: "#34d399",
+          border: "rgba(16,185,129,0.18)",
+          label: "Aprobado",
+        }
+      : {
+          bg: "rgba(239,68,68,0.08)",
+          color: "#f87171",
+          border: "rgba(239,68,68,0.15)",
+          label: "Rechazado",
+        };
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      padding: '2px 10px', borderRadius: 20, fontSize: 11.5, fontWeight: 500,
-      background: s.bg, color: s.color, border: `1px solid ${s.border}`,
-    }}>
-      <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor' }}/>
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+        padding: "2px 10px",
+        borderRadius: 20,
+        fontSize: 11.5,
+        fontWeight: 500,
+        background: s.bg,
+        color: s.color,
+        border: `1px solid ${s.border}`,
+      }}
+    >
+      <span
+        style={{
+          width: 5,
+          height: 5,
+          borderRadius: "50%",
+          background: "currentColor",
+        }}
+      />
       {s.label}
     </span>
   );
 }
 
-// ── Modal para asignar/gestionar cursos de un estudiante ──────────────────
+// â”€â”€ Modal para asignar/gestionar cursos de un estudiante â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function EnrollModal({ student, courses, onClose, onSaved }) {
   const [actionLoading, setActionLoading] = useState(null);
-  const [error, setError] = useState('');
-
-  const enrolledIds = new Set(student.enrolledCourses?.map(sc => sc.course.id) || []);
+  const [error, setError] = useState("");
+  // Estado local de inscripciones para reflejar cambios sin cerrar el modal
+  const [enrolledIds, setEnrolledIds] = useState(
+    new Set(student.enrolledCourses?.map((sc) => sc.course.id) || []),
+  );
 
   async function handleEnroll(courseId) {
-    setActionLoading(courseId); setError('');
+    setActionLoading(courseId);
+    setError("");
     try {
       await enrollStudent(student.id, courseId);
+      setEnrolledIds((prev) => new Set([...prev, courseId]));
       onSaved();
-    } catch (e) { setError(e.message); }
-    finally { setActionLoading(null); }
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setActionLoading(null);
+    }
   }
 
   async function handleUnenroll(courseId) {
-    setActionLoading(courseId); setError('');
+    setActionLoading(courseId);
+    setError("");
     try {
       await unenrollStudent(student.id, courseId);
+      setEnrolledIds((prev) => {
+        const next = new Set(prev);
+        next.delete(courseId);
+        return next;
+      });
       onSaved();
-    } catch (e) { setError(e.message); }
-    finally { setActionLoading(null); }
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setActionLoading(null);
+    }
   }
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)',
-      backdropFilter: 'blur(5px)', zIndex: 200,
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-    }} onClick={onClose}>
-      <div style={{
-        background: '#0f1520', border: '1px solid rgba(255,255,255,0.1)',
-        borderRadius: 16, width: '100%', maxWidth: 460, padding: 28,
-        boxShadow: '0 24px 60px rgba(0,0,0,0.6)', maxHeight: '80vh', overflowY: 'auto',
-      }} onClick={e => e.stopPropagation()}>
-        <h3 style={{ color: '#f1f5f9', margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 700 }}>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.65)",
+        backdropFilter: "blur(5px)",
+        zIndex: 200,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 20,
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: "#0f1520",
+          border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: 16,
+          width: "100%",
+          maxWidth: 460,
+          padding: 28,
+          boxShadow: "0 24px 60px rgba(0,0,0,0.6)",
+          maxHeight: "80vh",
+          overflowY: "auto",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3
+          style={{
+            color: "#f1f5f9",
+            margin: "0 0 4px",
+            fontSize: "1.05rem",
+            fontWeight: 700,
+          }}
+        >
           Cursos de {student.firstName || student.email}
         </h3>
-        <p style={{ color: '#475569', fontSize: 12.5, margin: '0 0 20px' }}>
+        <p style={{ color: "#475569", fontSize: 12.5, margin: "0 0 20px" }}>
           Asigna o remueve al estudiante de tus cursos.
         </p>
 
         {error && (
-          <div style={{ padding: '8px 12px', marginBottom: 14, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 8, color: '#f87171', fontSize: 12.5 }}>
+          <div
+            style={{
+              padding: "8px 12px",
+              marginBottom: 14,
+              background: "rgba(239,68,68,0.08)",
+              border: "1px solid rgba(239,68,68,0.15)",
+              borderRadius: 8,
+              color: "#f87171",
+              fontSize: 12.5,
+            }}
+          >
             {error}
           </div>
         )}
 
         {courses.length === 0 ? (
-          <div style={{ color: '#334155', fontSize: 13 }}>No tienes cursos activos.</div>
+          <div style={{ color: "#334155", fontSize: 13 }}>
+            No tienes cursos activos.
+          </div>
         ) : (
-          courses.map(c => {
+          courses.map((c) => {
             const enrolled = enrolledIds.has(c.id);
             return (
-              <div key={c.id} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '10px 14px', borderRadius: 9, marginBottom: 8,
-                background: enrolled ? 'rgba(5,150,105,0.06)' : 'rgba(255,255,255,0.02)',
-                border: `1px solid ${enrolled ? 'rgba(5,150,105,0.2)' : 'rgba(255,255,255,0.05)'}`,
-              }}>
+              <div
+                key={c.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "10px 14px",
+                  borderRadius: 9,
+                  marginBottom: 8,
+                  background: enrolled
+                    ? "rgba(5,150,105,0.06)"
+                    : "rgba(255,255,255,0.02)",
+                  border: `1px solid ${enrolled ? "rgba(5,150,105,0.2)" : "rgba(255,255,255,0.05)"}`,
+                }}
+              >
                 <div>
-                  <div style={{ fontSize: 13.5, color: '#f1f5f9', fontWeight: 500 }}>{c.name}</div>
-                  <div style={{ fontSize: 12, color: '#475569' }}>{c.grade} · Grupo {c.group}</div>
+                  <div
+                    style={{
+                      fontSize: 13.5,
+                      color: "#f1f5f9",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {c.name}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#475569" }}>
+                    {c.grade} Â· Grupo {c.group}
+                  </div>
                 </div>
                 <button
                   disabled={actionLoading === c.id}
-                  onClick={() => enrolled ? handleUnenroll(c.id) : handleEnroll(c.id)}
+                  onClick={() =>
+                    enrolled ? handleUnenroll(c.id) : handleEnroll(c.id)
+                  }
                   style={{
-                    background: enrolled ? 'rgba(239,68,68,0.1)' : 'rgba(5,150,105,0.12)',
-                    border: `1px solid ${enrolled ? 'rgba(239,68,68,0.2)' : 'rgba(5,150,105,0.25)'}`,
-                    borderRadius: 7, padding: '6px 14px',
-                    color: enrolled ? '#f87171' : '#34d399',
-                    fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit',
-                    cursor: 'pointer', whiteSpace: 'nowrap',
+                    background: enrolled
+                      ? "rgba(239,68,68,0.1)"
+                      : "rgba(5,150,105,0.12)",
+                    border: `1px solid ${enrolled ? "rgba(239,68,68,0.2)" : "rgba(5,150,105,0.25)"}`,
+                    borderRadius: 7,
+                    padding: "6px 14px",
+                    color: enrolled ? "#f87171" : "#34d399",
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    fontFamily: "inherit",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
                     opacity: actionLoading === c.id ? 0.5 : 1,
-                  }}>
-                  {actionLoading === c.id ? '...' : enrolled ? 'Remover' : 'Inscribir'}
+                  }}
+                >
+                  {actionLoading === c.id
+                    ? "..."
+                    : enrolled
+                      ? "Remover"
+                      : "Inscribir"}
                 </button>
               </div>
             );
           })
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
-          <button onClick={onClose} style={{
-            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)',
-            borderRadius: 8, padding: '8px 18px', color: '#94a3b8',
-            fontSize: 13.5, fontFamily: 'inherit', cursor: 'pointer',
-          }}>Cerrar</button>
+        <div
+          style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}
+        >
+          <button
+            onClick={onClose}
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.09)",
+              borderRadius: 8,
+              padding: "8px 18px",
+              color: "#94a3b8",
+              fontSize: 13.5,
+              fontFamily: "inherit",
+              cursor: "pointer",
+            }}
+          >
+            Cerrar
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// ── Página principal ──────────────────────────────────────────────────────
+// â”€â”€ PÃ¡gina principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function StudentsPage() {
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [search, setSearch] = useState('');
+  const [error, setError] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [search, setSearch] = useState("");
   const [actionLoading, setActionLoading] = useState(null);
   const [enrollModal, setEnrollModal] = useState(null);
 
   const load = useCallback(async () => {
-    setLoading(true); setError('');
+    setLoading(true);
+    setError("");
     try {
       const [sData, cData] = await Promise.all([
         listStudents({ status: filterStatus, search: search || undefined }),
@@ -140,28 +275,43 @@ export default function StudentsPage() {
       ]);
       setStudents(sData.students || []);
       setCourses(cData.courses || []);
-    } catch (e) { setError(e.message); }
-    finally { setLoading(false); }
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
   }, [filterStatus, search]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function handleApprove(student) {
     setActionLoading(student.id);
-    try { await approveStudent(student.id); load(); }
-    catch (e) { alert(e.message); }
-    finally { setActionLoading(null); }
+    try {
+      await approveStudent(student.id);
+      load();
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setActionLoading(null);
+    }
   }
 
   async function handleReject(student) {
-    if (!confirm(`¿Rechazar a ${student.firstName || student.email}?`)) return;
+    if (!confirm(`Â¿Rechazar a ${student.firstName || student.email}?`)) return;
     setActionLoading(student.id);
-    try { await rejectStudent(student.id); load(); }
-    catch (e) { alert(e.message); }
-    finally { setActionLoading(null); }
+    try {
+      await rejectStudent(student.id);
+      load();
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setActionLoading(null);
+    }
   }
 
-  const pendingCount = students.filter(s => s.pendingApproval).length;
+  const pendingCount = students.filter((s) => s.pendingApproval).length;
 
   return (
     <div>
@@ -173,7 +323,8 @@ export default function StudentsPage() {
         .sp-search-wrap { position:relative; flex:1; min-width:180px; max-width:280px; }
         .sp-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#475569; pointer-events:none; }
         .sp-search { width:100%; box-sizing:border-box; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); border-radius:8px; padding:8px 12px 8px 32px; color:#e2e8f0; font-size:13.5px; font-family:inherit; outline:none; }
-        .sp-select { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); border-radius:8px; padding:8px 12px; color:#e2e8f0; font-size:13px; font-family:inherit; outline:none; cursor:pointer; }
+        .sp-select { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); border-radius:8px; padding:8px 12px; color:#e2e8f0; font-size:13px; font-family:inherit; outline:none; cursor:pointer; color-scheme:dark; }
+        .sp-select option { background:#0f1520; color:#e2e8f0; }
         .sp-card { background:rgba(13,20,33,0.75); border:1px solid rgba(255,255,255,0.08); border-radius:14px; overflow:hidden; }
         .sp-table { width:100%; border-collapse:collapse; }
         .sp-table th { padding:11px 16px; text-align:left; font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.01); }
@@ -200,12 +351,22 @@ export default function StudentsPage() {
       <div className="sp-head">
         <div>
           <h1 className="sp-title">Estudiantes</h1>
-          <p className="sp-sub">Aprueba y asigna estudiantes de tu institución a tus cursos.</p>
+          <p className="sp-sub">
+            Aprueba y asigna estudiantes de tu institución a tus cursos.
+          </p>
         </div>
         {pendingCount > 0 && (
           <span className="sp-pending-badge">
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#fbbf24' }}/>
-            {pendingCount} pendiente{pendingCount !== 1 ? 's' : ''} de aprobación
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: "#fbbf24",
+              }}
+            />
+            {pendingCount} pendiente{pendingCount !== 1 ? "s" : ""} de
+            aprobación
           </span>
         )}
       </div>
@@ -214,14 +375,33 @@ export default function StudentsPage() {
       <div className="sp-filters">
         <div className="sp-search-wrap">
           <span className="sp-search-icon">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
           </span>
-          <input className="sp-search" type="text" placeholder="Buscar por nombre o email..."
-            value={search} onChange={e => setSearch(e.target.value)}/>
+          <input
+            className="sp-search"
+            type="text"
+            placeholder="Buscar por nombre o email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-        <select className="sp-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+        <select
+          className="sp-select"
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+        >
           <option value="all">Todos</option>
           <option value="pending">Pendientes</option>
           <option value="approved">Aprobados</option>
@@ -235,9 +415,9 @@ export default function StudentsPage() {
           <div className="sp-state">Cargando...</div>
         ) : students.length === 0 ? (
           <div className="sp-state">
-            {filterStatus === 'pending'
-              ? 'No hay estudiantes pendientes de aprobación.'
-              : 'No hay estudiantes en tu institución todavía.'}
+            {filterStatus === "pending"
+              ? "No hay estudiantes pendientes de aprobación."
+              : "No hay estudiantes en tu institución todavía."}
           </div>
         ) : (
           <table className="sp-table">
@@ -251,52 +431,67 @@ export default function StudentsPage() {
               </tr>
             </thead>
             <tbody>
-              {students.map(s => (
+              {students.map((s) => (
                 <tr key={s.id}>
                   <td>
                     <div className="sp-name">
                       {s.firstName || s.lastName
-                        ? `${s.firstName || ''} ${s.lastName || ''}`.trim()
+                        ? `${s.firstName || ""} ${s.lastName || ""}`.trim()
                         : s.email}
                     </div>
                     <div className="sp-email">{s.email}</div>
                   </td>
                   <td>
-                    <StatusBadge isActive={s.isActive} pendingApproval={s.pendingApproval}/>
+                    <StatusBadge
+                      isActive={s.isActive}
+                      pendingApproval={s.pendingApproval}
+                    />
                   </td>
                   <td>
                     {s.enrolledCourses?.length === 0 ? (
-                      <span style={{ fontSize: 12, color: '#334155' }}>Sin cursos</span>
+                      <span style={{ fontSize: 12, color: "#334155" }}>
+                        Sin cursos
+                      </span>
                     ) : (
-                      s.enrolledCourses?.map(sc => (
+                      s.enrolledCourses?.map((sc) => (
                         <span key={sc.course.id} className="sp-course-pill">
                           {sc.course.name}
                         </span>
                       ))
                     )}
                   </td>
-                  <td style={{ fontSize: 12, color: '#475569' }}>
-                    {new Date(s.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  <td style={{ fontSize: 12, color: "#475569" }}>
+                    {new Date(s.createdAt).toLocaleDateString("es-CO", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </td>
                   <td>
                     <div className="sp-actions">
                       {s.pendingApproval && (
-                        <button className="sp-btn approve"
+                        <button
+                          className="sp-btn approve"
                           disabled={actionLoading === s.id}
-                          onClick={() => handleApprove(s)}>
-                          {actionLoading === s.id ? '...' : 'Aprobar'}
+                          onClick={() => handleApprove(s)}
+                        >
+                          {actionLoading === s.id ? "..." : "Aprobar"}
                         </button>
                       )}
                       {s.pendingApproval && (
-                        <button className="sp-btn reject"
+                        <button
+                          className="sp-btn reject"
                           disabled={actionLoading === s.id}
-                          onClick={() => handleReject(s)}>
+                          onClick={() => handleReject(s)}
+                        >
                           Rechazar
                         </button>
                       )}
                       {s.isActive && !s.pendingApproval && (
-                        <button className="sp-btn enroll"
-                          onClick={() => setEnrollModal(s)}>
+                        <button
+                          className="sp-btn enroll"
+                          onClick={() => setEnrollModal(s)}
+                        >
                           Gestionar cursos
                         </button>
                       )}
@@ -314,7 +509,9 @@ export default function StudentsPage() {
           student={enrollModal}
           courses={courses}
           onClose={() => setEnrollModal(null)}
-          onSaved={() => { load(); setEnrollModal(null); }}
+          onSaved={() => {
+            load();
+          }}
         />
       )}
     </div>

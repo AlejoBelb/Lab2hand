@@ -32,6 +32,7 @@ export default function ControlsSim({
   onStopAutoCapture,
 
   isDraining,
+  isFilled,
 }) {
   // Estado de avisos
   const [errInterval, setErrInterval] = useState("");
@@ -58,8 +59,8 @@ export default function ControlsSim({
   // Reglas UI derivadas
   const autoCanStart = useMemo(() => {
     const t = toNumOr(autoIntervalSec, 0);
-    return !autoCaptureActive && isDraining && !paused && t > 0;
-  }, [autoCaptureActive, isDraining, paused, autoIntervalSec]);
+    return !autoCaptureActive && !paused && isFilled && t > 0;
+  }, [autoCaptureActive, paused, isFilled, autoIntervalSec]);
 
   const autoCanStop = useMemo(() => autoCaptureActive, [autoCaptureActive]);
 

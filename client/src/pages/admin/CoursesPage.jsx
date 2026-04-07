@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { listCourses, createCourse, updateCourse } from '../../lib/api/courses.js';
+import { listInstitutions } from '../../lib/api/institutions.js';
 import CourseDetailPanel from './CourseDetailPanel.jsx';
 
 const STATUS_LABELS = { ACTIVE: 'Activo', EXPIRED: 'Vencido', ARCHIVED: 'Archivado' };
@@ -32,25 +33,30 @@ function formatDate(iso) {
   });
 }
 
-// ── Modal crear / editar curso ────────────────────────────────────────────
+// ── Modal crear / editar curso ────────────────────────────────────────────────
 
-function CourseModal({ mode, initial, onClose, onSaved }) {
+function CourseModal({ mode, initial, institutions, onClose, onSaved }) {
   const [form, setForm] = useState({
-    name: initial?.name || '',
-    grade: initial?.grade || '',
-    group: initial?.group || '',
+    name:         initial?.name         || '',
+    grade:        initial?.grade        || '',
+    group:        initial?.group        || '',
     academicYear: initial?.academicYear || '',
-    startsAt: initial?.startsAt ? initial.startsAt.slice(0, 10) : '',
-    endsAt: initial?.endsAt ? initial.endsAt.slice(0, 10) : '',
-    status: initial?.status || 'ACTIVE',
+    startsAt:     initial?.startsAt ? initial.startsAt.slice(0, 10) : '',
+    endsAt:       initial?.endsAt   ? initial.endsAt.slice(0, 10)   : '',
+    status:       initial?.status       || 'ACTIVE',
+    institutionId: initial?.institution?.id || '',
   });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError]   = useState('');
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (mode === 'create' && !form.institutionId) {
+      setError('Debes seleccionar una institución');
+      return;
+    }
     setSaving(true); setError('');
     try {
       if (mode === 'create') {
@@ -76,7 +82,7 @@ function CourseModal({ mode, initial, onClose, onSaved }) {
     display: 'block', fontSize: 11.5, color: '#64748b',
     textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6,
   };
-  const selectS = { ...inputS, cursor: 'pointer' };
+  const selectS = { ...inputS, cursor: 'pointer', background: '#0f1829', colorScheme: 'dark' };
 
   return (
     <div style={{
@@ -105,6 +111,20 @@ function CourseModal({ mode, initial, onClose, onSaved }) {
 
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+
+            {/* Institución — solo en creación, full width */}
+            {mode === 'create' && (
+              <div style={{ gridColumn: '1/-1' }}>
+                <label style={labelS}>Institución *</label>
+                <select style={selectS} value={form.institutionId}
+                  onChange={set('institutionId')} required>
+                  <option value="">Seleccionar institución...</option>
+                  {institutions.map(i => (
+                    <option key={i.id} value={i.id}>{i.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Nombre — full width */}
             <div style={{ gridColumn: '1/-1' }}>
@@ -179,34 +199,44 @@ function CourseModal({ mode, initial, onClose, onSaved }) {
   );
 }
 
-// ── Página principal ──────────────────────────────────────────────────────
+// ── Página principal ──────────────────────────────────────────────────────────
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState([]);
+  const [courses, setCourses]       = useState([]);
   const [pagination, setPagination] = useState({ page: 1, total: 0, totalPages: 1 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState('');
 
-  const [search, setSearch] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [page, setPage] = useState(1);
+  const [institutions, setInstitutions]         = useState([]);
+  const [filterInstitution, setFilterInstitution] = useState('');
+  const [search, setSearch]                     = useState('');
+  const [filterStatus, setFilterStatus]         = useState('');
+  const [page, setPage]                         = useState(1);
 
-  const [modal, setModal] = useState(null); // null | { mode, initial? }
-  const [selectedCourse, setSelectedCourse] = useState(null); // id del curso en panel lateral
+  const [modal, setModal]               = useState(null);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+
+  // Cargar instituciones una sola vez para el selector
+  useEffect(() => {
+    listInstitutions()
+      .then(data => setInstitutions(data.institutions || []))
+      .catch(() => {});
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
     try {
       const data = await listCourses({
         page, pageSize: 12,
-        status: filterStatus || undefined,
-        search: search || undefined,
+        status:        filterStatus       || undefined,
+        search:        search             || undefined,
+        institutionId: filterInstitution  || undefined,
       });
       setCourses(data.items || []);
       setPagination({ page: data.page, total: data.total, totalPages: data.totalPages });
     } catch (e) { setError(e.message); }
     finally { setLoading(false); }
-  }, [page, filterStatus, search]);
+  }, [page, filterStatus, search, filterInstitution]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -222,7 +252,7 @@ export default function CoursesPage() {
         .cp-search-wrap { position:relative; flex:1; min-width:180px; max-width:280px; }
         .cp-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#475569; pointer-events:none; }
         .cp-search { width:100%; box-sizing:border-box; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); border-radius:8px; padding:8px 12px 8px 32px; color:#e2e8f0; font-size:13.5px; font-family:inherit; outline:none; }
-        .cp-select { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); border-radius:8px; padding:8px 12px; color:#e2e8f0; font-size:13px; font-family:inherit; outline:none; cursor:pointer; }
+        .cp-select { background:#0f1829; border:1px solid rgba(255,255,255,0.09); border-radius:8px; padding:8px 12px; color:#e2e8f0; font-size:13px; font-family:inherit; outline:none; cursor:pointer; color-scheme:dark; }
         .cp-btn-create { background:linear-gradient(135deg,#2563eb,#1d4ed8); border:none; border-radius:9px; padding:9px 18px; color:#fff; font-size:13.5px; font-weight:600; font-family:inherit; cursor:pointer; box-shadow:0 3px 10px rgba(37,99,235,0.3); display:flex; align-items:center; gap:7px; transition:opacity 0.15s; }
         .cp-btn-create:hover { opacity:0.88; }
         .cp-card { background:rgba(13,20,33,0.75); border:1px solid rgba(255,255,255,0.08); border-radius:14px; overflow:hidden; }
@@ -234,6 +264,7 @@ export default function CoursesPage() {
         .cp-table tr:not(.selected):hover td { background:rgba(255,255,255,0.015); cursor:pointer; }
         .cp-course-name { font-weight:500; color:#f1f5f9; }
         .cp-course-meta { font-size:12px; color:#475569; margin-top:2px; }
+        .cp-inst-tag { font-size:11px; color:#60a5fa; background:rgba(37,99,235,0.08); border:1px solid rgba(37,99,235,0.15); border-radius:4px; padding:1px 6px; display:inline-block; margin-top:3px; }
         .cp-count-pill { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:6px; font-size:12px; background:rgba(255,255,255,0.04); color:#64748b; margin-right:4px; }
         .cp-actions { display:flex; gap:6px; }
         .cp-btn-sm { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:5px 11px; font-size:12px; color:#94a3b8; font-family:inherit; cursor:pointer; transition:background 0.15s,color 0.15s; white-space:nowrap; }
@@ -253,7 +284,7 @@ export default function CoursesPage() {
         <div className="cp-head">
           <div>
             <h1 className="cp-title">Cursos</h1>
-            <p className="cp-sub">Gestiona los cursos de tu institución.</p>
+            <p className="cp-sub">Gestiona los cursos de todas las instituciones.</p>
           </div>
           <button className="cp-btn-create" onClick={() => setModal({ mode: 'create' })}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
@@ -277,6 +308,13 @@ export default function CoursesPage() {
               placeholder="Buscar por nombre, grado..."
               value={search} onChange={e => resetPage(setSearch)(e.target.value)}/>
           </div>
+          <select className="cp-select" value={filterInstitution}
+            onChange={e => resetPage(setFilterInstitution)(e.target.value)}>
+            <option value="">Todas las instituciones</option>
+            {institutions.map(i => (
+              <option key={i.id} value={i.id}>{i.name}</option>
+            ))}
+          </select>
           <select className="cp-select" value={filterStatus}
             onChange={e => resetPage(setFilterStatus)(e.target.value)}>
             <option value="">Todos los estados</option>
@@ -315,6 +353,9 @@ export default function CoursesPage() {
                         <div className="cp-course-meta">
                           {c.grade} · Grupo {c.group} · {c.academicYear}
                         </div>
+                        {c.institution && (
+                          <span className="cp-inst-tag">{c.institution.name}</span>
+                        )}
                       </td>
                       <td><StatusBadge status={c.status}/></td>
                       <td>
@@ -335,7 +376,7 @@ export default function CoursesPage() {
                         </span>
                       </td>
                       <td style={{ fontSize: 12, color: '#475569' }}>
-                        {formatDate(c.startsAt)} — {formatDate(c.endsAt)}
+                        {formatDate(c.startsAt)} – {formatDate(c.endsAt)}
                       </td>
                       <td onClick={e => e.stopPropagation()}>
                         <div className="cp-actions">
@@ -380,6 +421,7 @@ export default function CoursesPage() {
         <CourseModal
           mode={modal.mode}
           initial={modal.initial}
+          institutions={institutions}
           onClose={() => setModal(null)}
           onSaved={load}
         />

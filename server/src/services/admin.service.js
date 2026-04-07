@@ -4,10 +4,7 @@ const prisma = require('../config/prisma');
 const bcrypt = require('bcryptjs');
 
 /* ======================================================
-   LISTAR DOCENTES PENDIENTES DE APROBACIÓN
-   - pendingApproval = true
-   - isActive = false
-   - Filtrados por institución del admin
+   LISTAR USUARIOS PENDIENTES DE APROBACIÓN
 ====================================================== */
 async function listPendingTeachers({ adminInstitutionId } = {}) {
   return prisma.user.findMany({
@@ -20,6 +17,9 @@ async function listPendingTeachers({ adminInstitutionId } = {}) {
       email: true,
       firstName: true,
       lastName: true,
+      requestedRole: true,
+      institutionId: true,
+      institution: { select: { id: true, name: true } },
       createdAt: true,
     },
     orderBy: { createdAt: 'asc' },
@@ -27,59 +27,54 @@ async function listPendingTeachers({ adminInstitutionId } = {}) {
 }
 
 /* ======================================================
-   APROBAR DOCENTE
-   - Cambia role → TEACHER
-   - Activa la cuenta
-   - Asigna institución del admin que aprueba
+   APROBAR USUARIO
+   - El admin elige el rol definitivo al aprobar
+   - Roles permitidos: ADMIN, TEACHER, STUDENT
 ====================================================== */
-async function approveTeacher({ userId, adminInstitutionId }) {
-  const institution = await prisma.institution.findUnique({
-    where: { id: adminInstitutionId },
+async function approveUser({ userId, adminInstitutionId, approvedRole }) {
+  const validRoles = ['ADMIN', 'TEACHER', 'STUDENT'];
+  if (!validRoles.includes(approvedRole)) {
+    const err = new Error('Rol inválido. Solo se permite ADMIN, TEACHER o STUDENT');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      id: userId,
+      pendingApproval: true,
+    },
   });
 
-  if (!institution) {
-    const err = new Error('Institución no encontrada');
-    err.statusCode = 404;
-    throw err;
-  }
-
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-
   if (!user) {
-    const err = new Error('Usuario no encontrado');
+    const err = new Error('Usuario no encontrado o no está pendiente de aprobación');
     err.statusCode = 404;
-    throw err;
-  }
-
-  if (!user.pendingApproval || user.isActive) {
-    const err = new Error('El usuario no está pendiente de aprobación');
-    err.statusCode = 400;
     throw err;
   }
 
   return prisma.user.update({
     where: { id: userId },
     data: {
-      role: 'TEACHER',
+      role: approvedRole,
       isActive: true,
       pendingApproval: false,
-      institutionId: adminInstitutionId,
     },
     select: {
-      id: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-      role: true,
-      isActive: true,
-      institutionId: true,
+      id: true, email: true, firstName: true, lastName: true,
+      role: true, isActive: true, pendingApproval: true, institutionId: true,
     },
   });
 }
 
 /* ======================================================
+   APROBAR DOCENTE (legacy)
+====================================================== */
+async function approveTeacher({ userId }) {
+  return approveUser({ userId, approvedRole: 'TEACHER' });
+}
+
+/* ======================================================
    LISTAR USUARIOS DE LA INSTITUCIÓN DEL ADMIN
-   - Con filtros de rol, estado, búsqueda y paginación
 ====================================================== */
 async function listUsers({
   adminInstitutionId,
@@ -91,23 +86,22 @@ async function listUsers({
   sort = 'createdAt',
   order = 'desc',
 } = {}) {
-  const safePage = Math.max(1, Number(page) || 1);
-  const safeSize = Math.min(100, Math.max(1, Number(pageSize) || 20));
+  const safePage  = Math.max(1, Number(page) || 1);
+  const safeSize  = Math.min(100, Math.max(1, Number(pageSize) || 20));
   const safeOrder = order === 'asc' ? 'asc' : 'desc';
   const allowedSort = new Set(['createdAt', 'email', 'firstName', 'lastName', 'role']);
-  const safeSort = allowedSort.has(sort) ? sort : 'createdAt';
+  const safeSort  = allowedSort.has(sort) ? sort : 'createdAt';
 
-  const where = {
-    institutionId: adminInstitutionId,
-  };
+  const where = {};
+  if (adminInstitutionId) where.institutionId = adminInstitutionId;
 
   if (role) where.role = role;
   if (typeof isActive === 'boolean') where.isActive = isActive;
   if (search && search.trim()) {
     where.OR = [
-      { email: { contains: search.trim(), mode: 'insensitive' } },
+      { email:     { contains: search.trim(), mode: 'insensitive' } },
       { firstName: { contains: search.trim(), mode: 'insensitive' } },
-      { lastName: { contains: search.trim(), mode: 'insensitive' } },
+      { lastName:  { contains: search.trim(), mode: 'insensitive' } },
     ];
   }
 
@@ -119,15 +113,9 @@ async function listUsers({
       skip: (safePage - 1) * safeSize,
       take: safeSize,
       select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        isActive: true,
-        pendingApproval: true,
-        institutionId: true,
-        createdAt: true,
+        id: true, email: true, firstName: true, lastName: true,
+        role: true, isActive: true, pendingApproval: true,
+        institutionId: true, createdAt: true,
       },
     }),
   ]);
@@ -143,17 +131,9 @@ async function listUsers({
 
 /* ======================================================
    CREAR USUARIO DESDE EL PANEL ADMIN
-   - El admin crea usuarios activos directamente
-   - Sin flujo de aprobación
-   - Se asigna automáticamente a la institución del admin
 ====================================================== */
 async function createUserByAdmin({
-  adminInstitutionId,
-  email,
-  password,
-  firstName,
-  lastName,
-  role,
+  email, password, firstName, lastName, role, institutionId,
 }) {
   if (!email || !password || !role) {
     const err = new Error('email, password y role son obligatorios');
@@ -179,34 +159,25 @@ async function createUserByAdmin({
 
   return prisma.user.create({
     data: {
-      email,
-      passwordHash,
+      email, passwordHash,
       firstName: firstName || null,
-      lastName: lastName || null,
+      lastName:  lastName  || null,
       role,
       isActive: true,
       pendingApproval: false,
-      institutionId: adminInstitutionId,
+      institutionId: institutionId || null,
     },
     select: {
-      id: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-      role: true,
-      isActive: true,
-      institutionId: true,
-      createdAt: true,
+      id: true, email: true, firstName: true, lastName: true,
+      role: true, isActive: true, institutionId: true, createdAt: true,
     },
   });
 }
 
 /* ======================================================
    ACTUALIZAR USUARIO (desde panel admin)
-   - Permite cambiar nombre, rol, estado
-   - Valida que el usuario pertenezca a la institución del admin
 ====================================================== */
-async function updateUserByAdmin(userId, { adminInstitutionId, firstName, lastName, role, isActive }) {
+async function updateUserByAdmin(userId, { firstName, lastName, role, isActive, requesterId } = {}) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
   if (!user) {
@@ -215,23 +186,23 @@ async function updateUserByAdmin(userId, { adminInstitutionId, firstName, lastNa
     throw err;
   }
 
-  // El admin solo puede modificar usuarios de su institución
-  if (user.institutionId !== adminInstitutionId) {
-    const err = new Error('No tienes permiso para modificar este usuario');
-    err.statusCode = 403;
+  // Un admin no puede desactivarse a sí mismo
+  if (requesterId && requesterId === userId && isActive === false) {
+    const err = new Error('No puedes desactivar tu propia cuenta');
+    err.statusCode = 400;
     throw err;
   }
 
   const data = {};
   if (typeof firstName === 'string') data.firstName = firstName;
-  if (typeof lastName === 'string') data.lastName = lastName;
-  if (typeof isActive === 'boolean') {
+  if (typeof lastName  === 'string') data.lastName  = lastName;
+  if (typeof isActive  === 'boolean') {
     data.isActive = isActive;
-    // Si se desactiva, revocar tokens pendientes sería ideal,
-    // pero por ahora solo marcamos el estado
+    // Al activar manualmente también se limpia la bandera de pendiente
+    if (isActive === true) data.pendingApproval = false;
   }
   if (role) {
-    const validRoles = ['TEACHER', 'STUDENT', 'ADMIN'];
+    const validRoles = ['ADMIN', 'TEACHER', 'STUDENT'];
     if (!validRoles.includes(role)) {
       const err = new Error('Rol inválido');
       err.statusCode = 400;
@@ -244,15 +215,9 @@ async function updateUserByAdmin(userId, { adminInstitutionId, firstName, lastNa
     where: { id: userId },
     data,
     select: {
-      id: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-      role: true,
-      isActive: true,
-      pendingApproval: true,
-      institutionId: true,
-      createdAt: true,
+      id: true, email: true, firstName: true, lastName: true,
+      role: true, isActive: true, pendingApproval: true,
+      institutionId: true, createdAt: true,
     },
   });
 }
@@ -260,6 +225,7 @@ async function updateUserByAdmin(userId, { adminInstitutionId, firstName, lastNa
 module.exports = {
   listPendingTeachers,
   approveTeacher,
+  approveUser,
   listUsers,
   createUserByAdmin,
   updateUserByAdmin,
