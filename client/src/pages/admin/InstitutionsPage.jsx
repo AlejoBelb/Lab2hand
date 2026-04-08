@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../lib/auth/AuthContext.jsx';
 import {
   listInstitutions,
+  createInstitution,
   updateInstitution,
 } from '../../lib/api/institutions.js';
 
@@ -20,6 +21,12 @@ export default function InstitutionsPage() {
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState('');
 
+  // Modal creación
+  const [createModal, setCreateModal] = useState(false);
+  const [createName, setCreateName] = useState('');
+  const [createSaving, setCreateSaving] = useState(false);
+  const [createError, setCreateError] = useState('');
+
   async function load() {
     setLoading(true);
     setError('');
@@ -35,6 +42,7 @@ export default function InstitutionsPage() {
 
   useEffect(() => { load(); }, []);
 
+  // --- Edición ---
   function openEdit(inst) {
     setEditModal(inst);
     setEditName(inst.name);
@@ -60,6 +68,34 @@ export default function InstitutionsPage() {
       setEditError(e.message);
     } finally {
       setEditSaving(false);
+    }
+  }
+
+  // --- Creación ---
+  function openCreate() {
+    setCreateModal(true);
+    setCreateName('');
+    setCreateError('');
+  }
+
+  function closeCreate() {
+    setCreateModal(false);
+    setCreateError('');
+  }
+
+  async function handleSaveCreate(e) {
+    e.preventDefault();
+    if (!createName.trim()) { setCreateError('El nombre no puede estar vacío'); return; }
+    setCreateSaving(true);
+    setCreateError('');
+    try {
+      await createInstitution({ name: createName.trim() });
+      closeCreate();
+      load();
+    } catch (e) {
+      setCreateError(e.message);
+    } finally {
+      setCreateSaving(false);
     }
   }
 
@@ -175,6 +211,27 @@ export default function InstitutionsPage() {
           color: #e2e8f0;
         }
 
+        .inst-btn-create {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: linear-gradient(135deg, #2563eb, #1d4ed8);
+          border: none;
+          border-radius: 9px;
+          padding: 9px 18px;
+          color: #fff;
+          font-size: 13.5px;
+          font-weight: 600;
+          font-family: inherit;
+          cursor: pointer;
+          box-shadow: 0 3px 12px rgba(37,99,235,0.3);
+          transition: opacity 0.15s, transform 0.15s;
+        }
+        .inst-btn-create:hover {
+          opacity: 0.88;
+          transform: translateY(-1px);
+        }
+
         /* Estado vacío / error / carga */
         .inst-state {
           padding: 48px 0;
@@ -192,7 +249,7 @@ export default function InstitutionsPage() {
           margin-bottom: 16px;
         }
 
-        /* ── Modal ── */
+        /* — Modal — */
         .inst-modal-backdrop {
           position: fixed; inset: 0;
           background: rgba(0,0,0,0.6);
@@ -332,6 +389,14 @@ export default function InstitutionsPage() {
             Gestiona los datos de tu institución educativa.
           </p>
         </div>
+        <button className="inst-btn-create" onClick={openCreate}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Crear institución
+        </button>
       </div>
 
       {error && <div className="inst-error">{error}</div>}
@@ -399,6 +464,39 @@ export default function InstitutionsPage() {
           </table>
         )}
       </div>
+
+      {/* Modal creación */}
+      {createModal && (
+        <div className="inst-modal-backdrop" onClick={closeCreate}>
+          <div className="inst-modal" onClick={e => e.stopPropagation()}>
+            <h3>Crear institución</h3>
+
+            {createError && <div className="inst-modal-err">{createError}</div>}
+
+            <form onSubmit={handleSaveCreate}>
+              <div className="inst-field">
+                <label>Nombre</label>
+                <input
+                  type="text"
+                  value={createName}
+                  onChange={e => setCreateName(e.target.value)}
+                  placeholder="Nombre de la institución"
+                  autoFocus
+                />
+              </div>
+
+              <div className="inst-modal-actions">
+                <button type="button" className="inst-btn-cancel" onClick={closeCreate}>
+                  Cancelar
+                </button>
+                <button type="submit" className="inst-btn-save" disabled={createSaving}>
+                  {createSaving ? 'Creando...' : 'Crear institución'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal edición */}
       {editModal && (
