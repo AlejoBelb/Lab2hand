@@ -805,7 +805,7 @@ export default function HookeStatic({ initialShowMAS = false }) {
         <div className="hs-card-head">
           <h2>Tabla de capturas ({rows.length})</h2>
           <div style={{ display: "flex", gap: 8 }}>
-            <button className="hs-btn-ghost" onClick={exportCSV}>Exportar CSV</button>
+            <button className="hs-btn-ghost" onClick={exportCSV}>Exportar Excel</button>
             <button className="hs-btn-ghost" onClick={clearRows}>Limpiar</button>
           </div>
         </div>

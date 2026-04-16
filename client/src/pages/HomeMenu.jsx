@@ -338,14 +338,14 @@ export default function HomeMenu() {
           <div className="hm-video-card">
             <div className="hm-video-ratio">
               <iframe
-                src="https://www.youtube.com/embed/lxI1L1Qh8s4?si=demo"
+                src="https://www.youtube.com/embed/W_dS1NN-Kfc"
                 title="Video explicativo Lab2hand"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
             </div>
             <p className="hm-video-caption">
-              Breve explicación sobre cómo utilizar los módulos de simulación y recolectar datos.
+              Explicación de las funcionalidades principales de Lab2hand, incluyendo cómo registrar datos, analizar resultados y exportar informes para tus prácticas de laboratorio. Ideal para estudiantes y docentes que quieran aprovechar al máximo esta herramienta en sus clases de física.
             </p>
           </div>
         </section>
