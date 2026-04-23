@@ -5,10 +5,62 @@
    Importar en main.jsx: import '../shared/styles/responsive.css'
    ═══════════════════════════════════════════════════════════ */
 
-/* ── BERNOULLI — layout-shell ─────────────────────────────── */
+/* ── BERNOULLI — Panel móvil de parámetros ────────────────── */
 
-/* En tablets, colapsar sidebar automáticamente */
-@media (max-width: 768px) {
+/* Oculto en desktop por defecto */
+.mobile-params {
+  display: none;
+}
+
+.tank-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevenir desborde del grid en cualquier tamaño */
+.layout-shell > * {
+  min-width: 0;
+}
+.right-split > * {
+  min-width: 0;
+}
+
+/* ── BERNOULLI — Pantallas <= 1280px (todo lo que no es desktop completo) ── */
+@media (max-width: 1280px) {
+  /* Mostrar panel de parámetros móvil */
+  .mobile-params {
+    display: block;
+    margin-bottom: 12px;
+  }
+  .mobile-params-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--card, rgba(18, 24, 38, 1));
+    border: 1px solid var(--border, rgba(31, 41, 55, 1));
+    border-radius: 12px;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .mobile-params-toggle:hover {
+    background: rgba(255,255,255,0.07);
+    color: #e2e8f0;
+  }
+  .mobile-params-body {
+    margin-top: 8px;
+    padding: 14px;
+    background: var(--card, rgba(18, 24, 38, 1));
+    border: 1px solid var(--border, rgba(31, 41, 55, 1));
+    border-radius: 12px;
+  }
+
+  /* Ocultar sidebar de desktop */
   .layout-shell {
     grid-template-columns: 1fr !important;
     gap: 12px;
@@ -19,9 +71,19 @@
   .layout-shell .sidebar-handle {
     display: none;
   }
+
+  /* Right-split a una sola columna */
+  .right-split {
+    grid-template-columns: 1fr !important;
+  }
+  .right-split > :last-child {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
 }
 
-/* En móviles, header de Bernoulli apilado */
+/* ── BERNOULLI — Móviles <= 600px ─────────────────────────── */
 @media (max-width: 600px) {
   .app-title {
     flex-direction: column !important;
@@ -31,23 +93,6 @@
   .app-title button {
     align-self: flex-end;
   }
-}
-
-/* right-split: mejorar transición entre breakpoints */
-@media (max-width: 1280px) and (min-width: 901px) {
-  .right-split {
-    grid-template-columns: 1fr 340px;
-  }
-  .right-split > :last-child {
-    width: 340px;
-    max-width: 340px;
-    min-width: 340px;
-    font-size: 0.88rem;
-  }
-}
-
-/* Tanque SVG: asegurar que no desborde */
-@media (max-width: 600px) {
   .tank-wrap svg {
     max-height: 360px;
   }
@@ -58,7 +103,6 @@
 
 /* ── HOOKE ESTÁTICO — hs-main-grid ────────────────────────── */
 
-/* Mejorar el breakpoint intermedio */
 @media (max-width: 1100px) and (min-width: 901px) {
   .hs-main-grid {
     grid-template-columns: 320px 1fr;
