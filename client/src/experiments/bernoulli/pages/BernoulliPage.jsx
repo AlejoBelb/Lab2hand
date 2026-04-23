@@ -53,6 +53,9 @@ export default function BernoulliPage() {
   const [exiting, setExiting] = useState(false);
   const [lastCaptureIdx, setLastCaptureIdx] = useState(-1);
 
+  // ── Estado para parámetros móviles ──
+  const [mobileParamsOpen, setMobileParamsOpen] = useState(false);
+
   const handleGoHome = () => {
     setExiting(true);
     setTimeout(() => navigate("/"), 250);
@@ -198,6 +201,26 @@ export default function BernoulliPage() {
         </button>
       </div>
 
+      {/* ── Panel de parámetros SOLO para móviles/tablets (<= 900px) ── */}
+      <div className="mobile-params">
+        <button
+          className="mobile-params-toggle"
+          onClick={() => setMobileParamsOpen((v) => !v)}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points={mobileParamsOpen ? "18 15 12 9 6 15" : "6 9 12 15 18 9"} />
+          </svg>
+          {mobileParamsOpen ? "Ocultar parámetros" : "Mostrar parámetros del recipiente"}
+        </button>
+        {mobileParamsOpen && (
+          <div className="mobile-params-body">
+            <Controls unit={unit} height={height} diameter={diameter} holeDiameter={holeDiameter}
+              onUnitChange={setUnit} onHeightChange={setHeight} onDiameterChange={setDiameter} onHoleDiameterChange={setHoleDiameter} />
+          </div>
+        )}
+      </div>
+
+      {/* ── Layout principal (sidebar visible solo en desktop > 900px) ── */}
       <div className={layoutClass}>
         <div className="card sidebar-card">
           <div className="sidebar-handle" onClick={() => setLeftCollapsed((v) => !v)} title={leftCollapsed ? "Mostrar parámetros" : "Ocultar parámetros"} aria-label="Toggle sidebar">
@@ -216,8 +239,10 @@ export default function BernoulliPage() {
           <div className="right-split">
             <div className="tank-wrap">
               <h2>Vista del recipiente</h2>
-              <SimulationTank unit={unit} height={height} diameter={diameter} holeDiameter={holeDiameter}
-                level={level} isDraining={isDraining} visible={tankVisible} showRuler={showRuler} />
+              <div className="tank-scroll">
+                <SimulationTank unit={unit} height={height} diameter={diameter} holeDiameter={holeDiameter}
+                  level={level} isDraining={isDraining} visible={tankVisible} showRuler={showRuler} />
+              </div>
               <ControlsSim canFill={!isDraining && !paused && !ended} canStartDrain={isFilled && !isDraining && tankVisible && !paused && !ended}
                 canCapture={isFilled && tankVisible && !paused} onFill={handleFill} onStartDrain={handleStartDrain} onCapture={handleCapture}
                 onReset={handleReset} speedFactor={speedFactor} onSpeedChange={setSpeedFactor} showRuler={showRuler}
